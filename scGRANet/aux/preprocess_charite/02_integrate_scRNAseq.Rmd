@@ -1,0 +1,193 @@
+---
+title: "Untitled"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(Seurat)
+library(tidyverse)
+library(patchwork)
+wdpath <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/"
+```
+
+# Integrate
+
+
+```{r}
+#setwd("/media/ag-cherrmann/projects/10_charite_covid19/")
+seurat_list <- readRDS("/media/ag-cherrmann/projects/10_charite_covid19/results/scrna/seurat/rna_seurat_list.RDS")
+#sapply(seurat_list, ncol)
+seurat_list <- seurat_list[sapply(seurat_list, ncol) > 500]
+  
+k.filter <- min(200, min(sapply(seurat_list, ncol)))
+seurat_int <- Seurat::FindIntegrationAnchors(object.list = seurat_list, dims = 1:30, k.filter = k.filter)
+seurat_int2 <- seurat_int
+#We then pass these anchors to the IntegrateData function, which returns a Seurat object.
+#The returned object will contain a new Assay, which holds an integrated (or 'batch-corrected') expression matrix for all cells, enabling them to be jointly analyzed.
+seurat_int <- IntegrateData(anchorset = seurat_int, dims = 1:30)
+```
+
+# Find clusters
+
+
+```{r mit}
+# switch to integrated assay. The variable features of this assay are automatically
+# set during IntegrateData
+DefaultAssay(seurat_int) <- "integrated"
+#DefaultAssay(seurat_int) <- "RNA"
+dim(GetAssayData(seurat_int))
+
+
+
+# Run the standard workflow for visualization and clustering
+#seurat_int <- NormalizeData(seurat_int, normalization.method = "LogNormalize", scale.factor = 10000)
+seurat_int <- ScaleData(seurat_int, verbose = TRUE)
+#seurat_int <- FindVariableFeatures(object = seurat_int)
+
+#seurat_int@assays$integrated
+
+# seu <- RunPCA(seu, features = VariableFeatures(object = seu) )
+# seurat_int <- RunPCA(seurat_int, npcs = 30, verbose = TRUE)
+seurat_int <- RunPCA(seurat_int, npcs = 30, verbose = TRUE)
+
+seurat_int <- RunUMAP(seurat_int, reduction = "pca", dims = 1:30)
+seurat_int <- FindNeighbors(seurat_int, dims = 1:30)
+seurat_int <- FindClusters(seurat_int, resolution = 0.5)
+
+#DimPlot(seurat_int, reduction = "umap")
+#head(seurat_int@meta.data)
+
+
+p1 <- DimPlot(seurat_int, reduction = "umap", group.by = "orig.ident")
+p2 <- DimPlot(seurat_int, reduction = "umap", group.by = "seurat_clusters", label = TRUE, 
+    repel = TRUE) + NoLegend()
+p1 + p2
+
+ggsave(paste0(wdpath, "results/scrna/seurat/Plots/05_integrated_UMAP.pdf"), 
+         p1 + p2, width = 13)
+
+dim(seurat_int)
+
+```
+
+# Cluster markers
+
+```{r}
+seurat_markers <- FindAllMarkers(seurat_int, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+seurat_TopMarkers <- seurat_markers %>% group_by(cluster) %>% top_n(n = 6, wt = avg_logFC)
+writexl::write_xlsx(list(integrated = seurat_TopMarkers), 
+           path = paste0(wdpath, "results/scrna/seurat/scRNAseq_top_Markers_integrated.xlsx"))
+
+p1 <- DotPlot(seurat_int, features = unique(seurat_TopMarkers$gene)) + 
+  RotatedAxis()
+p1
+# ggsave(paste0(wdpath, "results/scrna/seurat/Plots/dotplots_clusters/integrated.pdf"), 
+#          p1, width = 20)
+
+ggsave("/home/bq_aquintero/projects/charite_covid19_TF_activity/results/scrna/seurat/Plots/integrated.pdf",
+       p1, width = 20)
+
+saveRDS(seurat_int, paste0(wdpath, "results/scrna/seurat/rna_seurat_int.RDS"))
+saveRDS(seurat_markers, paste0(wdpath, "results/scrna/seurat/rna_seurat_markers.RDS"))
+```
+
+
+# Cluster Annot
+
+```{r}
+# seurat_int <- readRDS(paste0(wdpath, "results/scrna/seurat/rna_seurat_int.RDS"))
+# 
+# new.cluster.ids <- c("Immune-Monocytes-Macrophages-Granulocytes",#"Epithelial/Immune mix1",
+#                      "Epithelial-Ciliated cells",
+#                      "Epithelial-Unknown1",
+#                      "Epithelial-Unknown2",
+#                      "Epithelial-Unknown3",
+#                      "Epithelial-Club cells",
+#                      "Immune-T-cells",
+#                      "Epithelial/Immune mix1",
+#                      "Epithelial-Exocrine glandular cells",
+#                      "Epithelial-Basal keratinocytes",
+#                      "Epithelial-Ciliated cells",
+#                      "Immune-Monocytes",
+#                      "Immune-Hofbauer cells-Macrophages",
+#                      "Epithelial-Unknown4",
+#                      "Epithelial-Unknown5",
+#                      "Immune-Granulocytes")
+# names(new.cluster.ids) <- levels(seurat_int)
+# seurat_int <- RenameIdents(seurat_int, new.cluster.ids)
+# p1 <- DimPlot(seurat_int, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
+# p1
+# seurat_int[["BioClassification"]] <- seurat_int@active.ident
+# head(seurat_int@meta.data)
+# 
+# 
+# saveRDS(seurat_int, paste0(wdpath, "results/scrna/seurat/rna_seurat_int_annot.RDS"))
+# 
+# 
+# ggsave(paste0(wdpath, "results/scrna/seurat/Plots/06_integrated_UMAP_manual_labels.pdf"), 
+#          p1, width = 8, heigh=8)
+# 
+
+
+```
+
+# Transfer labels from Nature paper
+
+```{r}
+covid_nbt_main <- readRDS("/media/ag-cherrmann/projects/10_charite_covid19/db/covid_nbt_main.rds")
+# idx <- sample.int(ncol(covid_nbt_main), 50000)
+# covid_nbt_main <- covid_nbt_main[,idx]
+# dim(covid_nbt_main)
+
+# covid_nbt_main <-   CreateSeuratObject(
+#   counts=covid_nbt_main@assays$RNA@counts,
+#   meta.data=covid_nbt_main@meta.data)
+
+
+covid_nbt_main <- NormalizeData(covid_nbt_main, normalization.method = "LogNormalize", scale.factor = 10000)
+covid_nbt_main <- ScaleData(covid_nbt_main, features = rownames(covid_nbt_main))
+covid_nbt_main <- FindVariableFeatures(covid_nbt_main, selection.method = "vst", nfeatures = 15000)
+covid_nbt_main <- RunPCA(covid_nbt_main, features = VariableFeatures(object = covid_nbt_main))
+covid_nbt_main <- RunUMAP(covid_nbt_main, reduction = "pca", dims = 1:30)
+
+DefaultAssay(seurat_int) <- "RNA"
+seurat_int <- NormalizeData(seurat_int, normalization.method = "LogNormalize", scale.factor = 10000)
+seurat_int <- ScaleData(seurat_int, features = rownames(seurat_int))
+seurat_int <- FindVariableFeatures(seurat_int, selection.method = "vst", nfeatures = 15000)
+seurat_int <- RunPCA(seurat_int, features = VariableFeatures(object = seurat_int))
+seurat_int <- RunUMAP(seurat_int, reduction = "pca", dims = 1:30)
+
+dim(covid_nbt_main)
+dim(seurat_int)
+covid_nbt_main@assays
+seurat_anchors <- FindTransferAnchors(reference = covid_nbt_main, reference.assay="integrated", query = seurat_int, dims = 1:30)
+predictions <- TransferData(anchorset = seurat_anchors, refdata = covid_nbt_main$celltype, 
+    dims = 1:30)
+table(predictions$predicted.id)
+
+seurat_int_transfer <- AddMetaData(seurat_int, metadata = predictions)
+
+# p1 <- DimPlot(seurat_int_transfer, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
+# p1
+
+head(seurat_int_transfer@meta.data)
+p1 <- DimPlot(seurat_int_transfer, reduction = "umap", group.by = "predicted.id")
+p1
+
+seurat_int_transfer[["BioClassification"]] <- seurat_int_transfer@meta.data$predicted.id
+head(seurat_int_transfer@meta.data)
+# p2 <- DimPlot(seurat_int, reduction = "umap", group.by = "seurat_clusters", label = TRUE, 
+#     repel = TRUE) + NoLegend()
+
+saveRDS(seurat_int_transfer, paste0(wdpath, "results/scrna/seurat/rna_seurat_int_annot_transfer.RDS"))
+ggsave(paste0(wdpath, "results/scrna/seurat/Plots/07_integrated_UMAP_transferl_labels.pdf"), 
+         p1, width = 8, heigh=8)
+
+
+```
+

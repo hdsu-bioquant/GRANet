@@ -1,0 +1,12 @@
+.snakemake/
+logs/
+.cache/
+.config/
+.keras/
+ArchRLogs/
+dask-worker-space/
+scGRANet/aux/scenic/rcistarget/
+Rplots.pdf
+tmp/
+**/*.html
+scGRANet/archive/

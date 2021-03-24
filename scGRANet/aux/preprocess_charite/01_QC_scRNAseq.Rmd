@@ -1,0 +1,201 @@
+---
+title: "Untitled"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(Seurat)
+library(tidyverse)
+library(patchwork)
+wdpath <- "/media/ag-cherrmann/projects/10_charite_covid19/"
+```
+
+# QC
+
+Filtering cells with less than 1000 genes or 2500 UMIs per cell detected.
+
+```{r data, eval=FALSE}
+#setwd("/media/ag-cherrmann/projects/10_charite_covid19/")
+
+#x <- list.files(path = file.path(wdpath, "data/scrna_new"), pattern = "filtered_feature_bc_matrix.h5", recursive = TRUE, full.names = TRUE)
+#writeLines(x, "/media/ag-cherrmann/projects/10_charite_covid19/data/scrna_new/counts_list.txt")
+
+samples_df <- readxl::read_xlsx("/media/ag-cherrmann/projects/10_charite_covid19/data/scrna_seq_annot_path.xlsx")
+samples_df
+
+samples_df <- samples_df %>% 
+  dplyr::filter(avail_RNA == "TRUE")
+
+counts_raw_path <- setNames(samples_df$path, samples_df$SampleID)
+counts_raw_list <- lapply(counts_raw_path, function(path){
+  print(path)
+  Read10X_h5(path)
+})
+
+#t(sapply(counts_raw_list, dim))
+saveRDS(counts_raw_list, paste0(wdpath, "data/scrna/rna_counts_raw_list.RDS"))
+
+
+# Filtering cells with less than 1000 genes or 2500 UMIs per cell detected.
+countsFilt_raw_list <- lapply(counts_raw_list, function(counts){
+  counts <- counts[, Matrix::colSums(counts)>2500]
+  counts[, Matrix::colSums(counts>0)>1000]
+})
+t(sapply(countsFilt_raw_list, dim))
+
+
+
+```
+
+```{r readData}
+
+samples_df <- readxl::read_xlsx("/media/ag-cherrmann/projects/10_charite_covid19/data/scrna_seq_annot_path.xlsx")
+samples_df
+
+samples_df <- samples_df %>% 
+  dplyr::filter(avail_RNA == "TRUE")
+
+counts_raw_list <- readRDS(paste0(wdpath, "data/scrna/rna_counts_raw_list.RDS"))
+
+t(sapply(counts_raw_list, dim))
+
+# Filtering cells with less than 1000 genes or 2500 UMIs per cell detected.
+countsFilt_raw_list <- lapply(counts_raw_list, function(counts){
+  counts <- counts[, Matrix::colSums(counts)>2500]
+  counts[, Matrix::colSums(counts>0)>1000]
+})
+
+c <- t(sapply(countsFilt_raw_list, dim))
+c
+
+samples_df$count_afterFilter <- c[,2]
+
+
+```
+
+
+
+## QC plots
+- Number of genes per cell
+- Number of total reads per cell
+- Percentage of mitochondrial gene expression
+
+
+```{r mit}
+sample_ids <- setNames(names(counts_raw_list), names(counts_raw_list))
+seurat_list <- lapply(sample_ids, function(sample_id){
+  CreateSeuratObject(counts = counts_raw_list[[sample_id]], project = sample_id, 
+                     min.cells = 3, min.features = 200)
+})
+#seurat_list
+
+
+# Estimate percentage of mitochondrial gene expression
+seurat_list <- lapply(seurat_list, function(seurat_obj){
+  seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
+  seurat_obj
+})
+seurat_list
+
+# Visualize QC metrics as a violin plot
+lapply(seurat_list, function(seurat_obj){
+  VlnPlot(seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+          ncol = 3, pt.size=0.2)
+})
+
+
+# Compare QC metrics 
+lapply(seurat_list, function(seurat_obj){
+  plot1 <- FeatureScatter(seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mt") + theme(legend.position='none')
+  plot2 <- FeatureScatter(seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + theme(legend.position='none')
+  plot1 + plot2
+})
+
+
+
+
+
+```
+
+## Filtering low QC cells
+- Filter cells that have unique feature counts over 7000 or less than 200
+- Filter cells that have >20% mitochondrial counts
+
+```{r filtlowqc}
+seurat_list <- lapply(seurat_list, function(seurat_obj){
+  subset(seurat_obj, subset = nFeature_RNA > 200 & nFeature_RNA < 7000 & percent.mt < 20)
+})
+seurat_list
+```
+
+
+# Normalize & Identification of highly variable features (feature selection)
+
+```{r norm}
+
+seurat_list <- lapply(seurat_list, function(seurat_obj){
+  seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", scale.factor = 10000)
+  FindVariableFeatures(seurat_obj, selection.method = "vst", nfeatures = 2000)
+})
+
+
+# seurat_list <- lapply(seurat_list, function(seurat_obj){
+#   seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", scale.factor = 10000)
+#   FindVariableFeatures(seurat_obj, selection.method = "vst", nfeatures = 2000)
+# })
+# 
+
+lapply(seurat_list, function(seurat_obj){
+  # Identify the 10 most highly variable genes
+  top10 <- head(VariableFeatures(seurat_obj), 10)
+
+  # plot variable features with and without labels
+  plot1 <- VariableFeaturePlot(seurat_obj)
+  LabelPoints(plot = plot1, points = top10, repel = TRUE)
+})
+
+
+seurat_list <- lapply(seurat_list, function(seurat_obj){
+  all.genes <- rownames(seurat_obj)
+  ScaleData(seurat_obj, features = all.genes)
+})
+
+
+seurat_list
+
+
+
+
+```
+
+# Perform linear dimensional reduction & 
+
+```{r pca}
+# remove samples with less than 100 cells
+seurat_list <- seurat_list[sapply(seurat_list, ncol) > 100]
+
+
+
+seurat_list <- lapply(seurat_list, function(seurat_obj){
+  print(seurat_obj)
+  seurat_obj <- RunPCA(seurat_obj, features = VariableFeatures(object = seurat_obj))
+  #seurat_obj <- JackStraw(seurat_obj, num.replicate = 100)
+  #seurat_obj <- ScoreJackStraw(seurat_obj, dims = 1:20)
+  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:20)
+  seurat_obj <- FindClusters(seurat_obj, resolution = 0.5)
+  RunUMAP(seurat_obj, dims = 1:20)
+})
+
+lapply(seurat_list, function(seurat_obj){
+  DimPlot(seurat_obj, reduction = "umap")
+})
+
+
+saveRDS(seurat_list, paste0(wdpath, "results/scrna/seurat/rna_seurat_list.RDS"))
+```
+

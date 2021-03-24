@@ -1,0 +1,288 @@
+---
+title: "AdultThymus method 2 Regulon NMF"
+author: "HDSU"
+date: "`r date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    number_sections: false
+params:
+  K                   : 8
+  maxRank             : 12
+  n_initializations   : 5 
+  p_exprs             : '/home/bq_aquintero/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_Adult_9Tissues_Seurat.RDS'
+  p_regulon           : "/home/bq_aquintero/projects/mouse_atlas_TF_activity/adult_9tissues/results/integrated/TF_activity_method2_500000/regulonAUC.RDS"
+  p_regulonByType     : "/home/bq_aquintero/projects/mouse_atlas_TF_activity/adult_9tissues/results/integrated/TF_activity_method2_500000/tfRegulons_asDF.RDS"
+  sampleregulon: TRUE
+  p_nmf : "/home/bq_aquintero/projects/mouse_atlas_TF_activity/adult_9tissues/results/integrated/TF_activity_method2_500000/NMF_AdultThymus/NMF_regulonAUC.RDS"
+  annotCol: "Annotation"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE, echo=FALSE}
+#this chunk sets global options for Rmarkdown
+
+knitr::opts_chunk$set(echo = TRUE)
+options(knitr.table.format="html")
+
+# if (Sys.info()[["sysname"]] == "Darwin") {
+#     # When running locally use conda env
+#     reticulate::use_condaenv("tensor240pip", required = TRUE)
+#     print(reticulate::py_config())
+# }
+
+library(tidyverse)
+library(Polychrome)
+library(viridis)
+library(ComplexHeatmap)
+#library(DESeq2)
+library(ButchR)
+library(Seurat)
+#library(ggupset)
+#library(clusterProfiler)
+#library(msigdbr)
+library(umap)
+library(cowplot)
+library(MatrixGenerics)
+
+
+```
+
+## NMF of a recovered regulon
+
+Only cells for wich the corresponding cell type was found in scATAC-seq data are taken into account.
+
+
+## Preprocessing   
+
+Load data and filter out cell 
+
+
+```{r preprocess,  fig.width=12, fig.height=12, out.width="90%"}
+
+# params <- list(K = 8,
+#                p_exprs = 'results/scrna/seurat/rna_seurat_int_annot_transfer.RDS',
+#                p_regulon = "results/integrated/TF_activity/regulonAUC.RDS",
+#                p_regulonAUC_devCor = "results/integrated/TF_activity/regulonAUC_devCorrected.RDS")
+
+
+regulon <- readRDS(params$p_regulon)
+dim(regulon)
+
+regulonByType <- readRDS(params$p_regulonByType)
+
+# Keep only TF in cell type specific regulon
+regulonByType$AdultThymus
+regulon <- regulon[sub(" \\(.*", "", rownames(regulon)) %in% regulonByType$AdultThymus$TF,]
+dim(regulon)
+
+
+exprs <- readRDS(params$p_exprs)
+
+unique(exprs$tissue)
+exprs <- exprs[,exprs$tissue == "AdultThymus"]
+dim(exprs)
+
+regulon <- regulon[,colnames(exprs)]
+dim(regulon)
+
+table(rowSums(regulon) == 0)
+table(colSums(regulon) == 0)
+
+regulon <- regulon[rowSums(regulon) > 0,]
+dim(regulon)
+
+table(exprs$Annotation)
+length(unique(exprs$Annotation))
+```
+
+## Applying NMF
+
+Applying Non-Negative Matrix Factorization (NMF) to Regulon, using:  
+- Factorization ranks from 2 to 8.
+- Default NMF method.
+- 10 random initialization.
+
+```{r NMF_run, message=FALSE, warning=FALSE, cache=FALSE}
+##----------------------------------------------------------------------------##
+##                             run NMF                                        ##
+##----------------------------------------------------------------------------##
+factorization_ranks <- 2:params$maxRank
+#factorization_ranks <- 20
+nmf_exp <- run_NMF_tensor(X                     = regulon,
+                          ranks                 = factorization_ranks,
+                          method                = "NMF",
+                          n_initializations     = params$n_initializations,
+                          iterations            = 10^4,
+                          convergence_threshold = 40, 
+                          extract_features = TRUE)
+nmf_exp
+  
+## Normalize NMF
+norm_nmf_exp <- normalizeW(nmf_exp)
+
+saveRDS(norm_nmf_exp, params$p_nmf)
+
+```
+ 
+ 
+## Factorization quality metrics and optimal K
+
+Based on the results of the factorization quality metrics, an optimal number of signatures (k) must be chosen:
+  
+```{r NMF_optK, results='hide',fig.keep='all', message=FALSE, warning=FALSE}
+## Plot K stats
+gg_plotKStats(norm_nmf_exp)
+
+```
+Minize the Frobenius error, the coefficient of variation and the mean Amari distance, while maximizing the sum and mean silhouette width and the cophenic coefficient.
+  
+
+
+## H Matrix sample exposure:  {.tabset}  
+
+Visualization of the sample exposure to the decomposed signatures.
+  
+  
+```{r Hmatrix_Wnorm, fig.width=8, fig.height=5.5, out.width="90%", results='asis', warning=FALSE, message=FALSE}
+
+Heatmap_Regulon <- function(regulon, seurat, title, colID){
+  
+  type.colVector <- seurat@meta.data[,colID, drop=FALSE] %>%
+    dplyr::distinct() %>%
+    dplyr::rename(Celltype =  !!colID) %>%
+    dplyr::arrange(Celltype) %>%
+    dplyr::mutate(color = alphabet.colors(n())) %>%
+    deframe()
+  collist <- list(type.colVector)
+  names(collist) <- colID
+  
+  # Build Heatmap annotation
+  heat.anno <- HeatmapAnnotation(df  = seurat@meta.data[colnames(regulon),colID, drop=FALSE],
+                                 col = collist,
+                                 show_annotation_name = TRUE, na_col = "white")
+  rownames(regulon) <- paste0("Sign.", 1:nrow(regulon))
+  Heatmap(regulon,
+          col = viridis(100),
+          name = title,
+          top_annotation = heat.anno,
+          show_column_names = FALSE,
+          show_row_names = TRUE,
+          show_column_dend = FALSE,
+          show_row_dend = FALSE,
+          cluster_rows = TRUE)
+}
+
+
+##----------------------------------------------------------------------------##
+##              Generate H matrix heatmap, W normalized                       ##
+##----------------------------------------------------------------------------##
+heatmaps_list <- list()
+i <- 1
+for(ki in factorization_ranks) {
+  cat("\n")
+  cat("  \n### H matrix for k=",  ki, "  {.tabset}   \n  ")
+  #plot H matrix
+  tmpHmatrix <- HMatrix(norm_nmf_exp, k = ki)
+  h.heatmap <- Heatmap_Regulon(regulon=tmpHmatrix, seurat=exprs, title=paste0("H k=", ki), colID=params$annotCol)
+  print(h.heatmap)
+  heatmaps_list[[i]] <- h.heatmap
+  
+  h.heatmap <- Heatmap_Regulon(regulon=tmpHmatrix/rowMaxs(tmpHmatrix), seurat=exprs, title=paste0("H k=", ki), colID=params$annotCol)
+  print(h.heatmap)
+  heatmaps_list[[i+1]] <- h.heatmap
+  i <- i+2
+}
+
+
+#length(heatmaps_list)
+pdf(file = sub(".RDS", "_heatmaps.pdf", params$p_nmf), width=10, height=7)
+for (h in heatmaps_list) {
+  print(h)
+}
+dev.off()
+
+
+```
+
+## Signature estability - Riverplot visualization
+
+Riverplot representation of the extracted signatures at different factorization ranks. The nodes represent the signatures, the edge strength encodes cosine similarity between signatures linked by the edges. 
+
+```{r NMF_river, results='hide',fig.keep='all', message=FALSE, warning=FALSE}
+river <- generateRiverplot(norm_nmf_exp, ranks = factorization_ranks)
+plot(river, plot_area=1, yscale=0.6, nodewidth=0.5)
+
+
+pdf(file = sub(".RDS", "_riverplot.pdf", params$p_nmf), width=10, height=7)
+plot(river, plot_area=1, yscale=0.6, nodewidth=0.5)
+dev.off()
+
+
+```
+
+
+## Cluster identification - UMAP
+
+Cluster identification by running UMAP on the matrix H. 
+
+```{r umap_Hmatrix}
+##----------------------------------------------------------------------------##
+##                         UMAP H matrix                                      ##
+##----------------------------------------------------------------------------##
+hmatrix_norm <- HMatrix(norm_nmf_exp, k = params$K)
+umapView <- umap(t(hmatrix_norm))
+
+umapView_df <- as.data.frame(umapView$layout)
+colnames(umapView_df) <- c("UMAP1", "UMAP2")
+
+umapView_df %>% 
+  rownames_to_column("cellID") %>% 
+  left_join(rownames_to_column(exprs@meta.data, "cellID"), by = "cellID") %>% 
+  ggplot(aes(x=UMAP1, y=UMAP2, color = !!sym(params$annotCol))) + 
+  geom_point(size = 1.5, alpha = 0.95) + 
+  #scale_color_manual(values = type_colVector) +
+  cowplot::theme_cowplot()
+
+
+```
+
+## Association of signatures to biological variables:  {.tabset}  
+
+
+Recovery plots showing the association of the NMF signatures to known biological variables.
+  
+  
+```{r recovery, fig.width=8, fig.height=5.5, out.width="90%", results='asis', warning=FALSE, message=FALSE}
+##----------------------------------------------------------------------------##
+##                               Recovery plots                               ##
+##----------------------------------------------------------------------------##
+
+annot <- umapView_df %>% 
+  rownames_to_column("cellID") %>% 
+  left_join(rownames_to_column(exprs@meta.data, "cellID"), by = "cellID")
+
+recovery_list <- list()
+i <- 1
+for(ki in factorization_ranks) {
+  cat("\n")
+  cat("  \n### Recovery plots for k=",  ki, "  {.tabset}   \n  ")
+  tmpHmatrix <- HMatrix(norm_nmf_exp, k = ki)
+  recov <- ButchR::recovery_plot(tmpHmatrix, annot[, params$annotCol])
+  print(recov)
+  recovery_list[[i]] <- recov
+  i <- i+1
+}
+
+
+length(recovery_list)
+pdf(file = sub(".RDS", "_recovery.pdf", params$p_nmf), width=10, height=7)
+for (recov in recovery_list) {
+  plot(recov)
+}
+dev.off()
+
+```
