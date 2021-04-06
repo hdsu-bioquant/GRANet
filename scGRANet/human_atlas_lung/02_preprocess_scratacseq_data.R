@@ -24,7 +24,7 @@ archerOutdir <- unique(dirname(rawFiles))
 #------------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------#
-#                               Index and sort fragments                       #
+#                       Index and sort fragments                               #
 #------------------------------------------------------------------------------#
 
 # Original files are not sorted, and bgzipped
@@ -72,100 +72,36 @@ rawFiles <- lapply(params$rawFiles, function(rawFile){
   file.path(params$archerOutdir, baseto)
   
 })
-
-
-
-
-
-
-
+rawFiles <- unlist(rawFiles)
 #------------------------------------------------------------------------------#
-
+#                              Make arrow files                                #
 #------------------------------------------------------------------------------#
-
 library(ArchR)
-# library(patchwork)
-# library(ComplexHeatmap)
-# library(viridis)
 
-addArchRGenome(genome)
-
-
-
+addArchRGenome(params$genome)
 
 myrealwd <- getwd()
-setwd(archerOutdir)
+setwd(params$archerOutdir)
 
 
 # Name sample name from file
-sampleNames <- basename(rawFiles)
+#sampleNames <- basename(rawFiles)
 
 # sample_ids_atac <- c("SC2-10025AT-NS02FU", "SC2-20017AT-NS02FU", "SC2-30011AT-NS02FU")
 # names(sample_ids_atac) <- c("SC2-10025-NS02FU",   "SC2-30011-NS02FU", "SC2-20017-NS02FU")
 #getValidBarcodes
 
-x <- read.table("/media/ag-cherrmann/projects/10_charite_covid19/subprojects/human_atlas_TF_activity/data/atac/fragments_processed/lung_SM-A62E9_rep1_fragments.bed.gz")
-head(x)
-x <- x[,1:5]
-colnames(x) <- c("chr", "start", "end", "barcode", "count")
-gr <- makeGRangesFromDataFrame(x, keep.extra.columns = TRUE)
-gr <-sort(gr, ignore.strand=TRUE)
-gr
-y <- as.data.frame(gr)
-head(y)
-y <- y[,c(1,2,3,6,7)]
 
-
-makeFragTabix<-function(filepath,skip=0,rm.file=TRUE){
-  message("compressing the file with bgzip...")
-  zipped <- Rsamtools::bgzip(filepath,overwrite=TRUE)
-  
-  #if(rm.file){file.remove(filepath)}
-  
-  message("making tabix index...")
-  Rsamtools::indexTabix(zipped,
-                        seq=1, start=2, end=3,
-                        skip=skip, comment="#", zeroBased=FALSE)
-  
-}
-
-makeFragTabix("/media/ag-cherrmann/projects/10_charite_covid19/subprojects/human_atlas_TF_activity/data/atac/fragments_processed/lung_SM-A62E9_rep1_fragments.txt.gz")
-
-write_delim(y, file=out_tabix, delim = "\t", col_names = FALSE)
-indexTabix(out_tabix, seq=1, start=2, end=3)
-
-Rsamtools::bgzip()
-
-
-out_tabix <- "/media/ag-cherrmann/projects/10_charite_covid19/subprojects/human_atlas_TF_activity/data/atac/fragments_processed/lung_SM-A62E9_rep1_fragments.txt.bgz"
-#exportToTabix(gr, con=out_tabix,  quote=FALSE)
-
-#xt <- TabixFile(file = out_tabix)
-#indexTabix(out_tabix, format = "bed")
+rawFiles
 
 ArrowFiles <- createArrowFiles(
-  inputFiles = out_tabix,
-  sampleNames = basename(out_tabix),
+  inputFiles  = rawFiles,
+  sampleNames = sub("\\..*", "", basename(rawFiles)),
   minTSS   = 2, #Dont set this too high because you can always increase later
   minFrags = 1000, 
   addTileMat = TRUE,
   addGeneScoreMat = TRUE,
-  force = TRUE,
-  threads = 1
-)
-ArrowFiles
-
-
-
-ArrowFiles <- createArrowFiles(
-  inputFiles = rawFiles,
-  sampleNames = sampleNames,
-  minTSS   = 2, #Dont set this too high because you can always increase later
-  minFrags = 1000, 
-  addTileMat = TRUE,
-  addGeneScoreMat = TRUE,
-  force = TRUE,
-  threads = 1
+  force = TRUE
 )
 ArrowFiles
 #ArrowFiles <- list.files(".", pattern = "*.arrow")
