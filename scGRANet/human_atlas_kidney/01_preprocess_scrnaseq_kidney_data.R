@@ -49,3 +49,16 @@ library(Seurat)
 seuratobj <- CreateSeuratObject(dge[,annot$Cell_id], meta.data = annot)
 
 rownames(seuratobj)
+saveRDS(seuratobj, "~/projects/GRANet/human_atlas_kidkey/data/scrna/adult_human_kidney_seurat.RDS")
+
+
+#------------------------------------------------------------------------------#
+#                            Save data for pySCENIC                            #
+#------------------------------------------------------------------------------#
+exprs2scenic <- seuratobj@assays$RNA@counts
+dim(exprs2scenic)
+
+exprs2scenic <- t(as.matrix(exprs2scenic))
+dim(exprs2scenic)
+write.table(exprs2scenic, file = "~/projects/GRANet/human_atlas_kidkey/results/scrna/SCENIC/rnaseq_counts.tsv", 
+            quote = FALSE, sep = '\t', row.names = TRUE, col.names = TRUE)
