@@ -6,6 +6,7 @@ logs/
 ArchRLogs/
 dask-worker-space/
 scGRANet/aux/scenic/rcistarget/
+scGRANet/general/aux/scenic/rcistarget/
 Rplots.pdf
 tmp/
 **/*.html
