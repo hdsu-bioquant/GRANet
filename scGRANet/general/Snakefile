@@ -7,7 +7,7 @@ import csv
 import re
 
 # Import config file & parameters
-configfile: 'config.yaml'
+#configfile: 'config.yaml'
 
 
 

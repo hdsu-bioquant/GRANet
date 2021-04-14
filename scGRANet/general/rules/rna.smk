@@ -7,6 +7,16 @@ if config['genome'] == 'hg19':
       "db_ranking_tss1u" : 'https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg19/refseq_r45/mc9nr/gene_based/hg19-tss-centered-10kb-7species.mc9nr.feather',
       "db_ranking_tss2u" : 'https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg19/refseq_r45/mc9nr/gene_based/hg19-tss-centered-5kb-7species.mc9nr.feather'
     }
+elif config['genome'] == 'hg38':
+    # will use the same files as hg19 because there is more info for hg19
+    scenic_data = {
+      "motif_annotation": 'aux/scenic/rcistarget/motifs-v9-nr.hgnc-m0.001-o0.0.tbl',
+      "db_ranking_tss1" : 'aux/scenic/rcistarget/hg19-tss-centered-10kb-7species.mc9nr.feather',
+      "db_ranking_tss2" : 'aux/scenic/rcistarget/hg19-tss-centered-5kb-7species.mc9nr.feather',
+      "motif_annotationu": 'https://resources.aertslab.org/cistarget/motif2tf/motifs-v9-nr.hgnc-m0.001-o0.0.tbl',
+      "db_ranking_tss1u" : 'https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg19/refseq_r45/mc9nr/gene_based/hg19-tss-centered-10kb-7species.mc9nr.feather',
+      "db_ranking_tss2u" : 'https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg19/refseq_r45/mc9nr/gene_based/hg19-tss-centered-5kb-7species.mc9nr.feather'
+    }
 elif config['genome'] == 'mm9':
     scenic_data = {
       "motif_annotation": 'aux/scenic/rcistarget/motifs-v9-nr.mgi-m0.001-o0.0.tbl',
