@@ -1,0 +1,115 @@
+#------------------------------------------------------------------------------#
+#                     Cluster config for a qsub system                         #
+#------------------------------------------------------------------------------#
+# Default Rule
+__default__:
+    walltime: 04:00:00
+    cores: 1
+    memory: 30g
+    output   : "logs/{rule}.{wildcards}.out"
+    error    : "logs/{rule}.{wildcards}.err"
+    queue: " "
+    
+#------------------------------------------------------------------------------#
+#                                  ATAC                                        #
+#------------------------------------------------------------------------------#
+tranferRNA2atac:
+    walltime: 10:00:00
+    memory: 200g 
+    cores: 20
+
+atacMotifMatch:
+    walltime: 10:00:00
+    memory: 200g 
+    cores: 20
+
+
+#------------------------------------------------------------------------------#
+#                               pySCENIC                                       #
+#------------------------------------------------------------------------------#
+scenic_step0_seurat2scenic:
+    walltime: 48:00:00
+    memory: 200g 
+    cores: 5
+    
+scenic_step1b_add_cor:
+    walltime: 48:00:00
+    memory: 400g 
+    cores: 5
+    
+scenic_step1:
+    walltime: 10:00:00
+    memory: 50g 
+    cores: 6
+
+scenic_step1_grn_arboreto:
+    walltime: 48:00:00
+    memory: 600g 
+    cores: 20
+
+scenic_step2:
+    cores: 6
+    memory: 400g 
+
+scenic_step3_aucell:
+    cores: 6
+    memory: 400g 
+
+#------------------------------------------------------------------------------#
+#        TF activity integration scRNA-seq and scATAC-seq - Method 1           #
+#------------------------------------------------------------------------------#
+tfm01_step1_regulon_matchedMotifs_CoExprsModules:
+    memory: 300g 
+    cores: 20
+
+tfm01_step2_AUCcell_intregulons:
+    memory: 400g 
+    cores: 20
+
+#------------------------------------------------------------------------------#
+#        TF activity integration scRNA-seq and scATAC-seq - Method 2           #
+#------------------------------------------------------------------------------#
+tfm02_step1_regulon_matchedMotifsByCellType:
+    memory: 400g 
+    cores: 20
+
+tfm02_step2_AUCcell_intRegulonsByCellType:
+    memory: 400g 
+    cores: 20
+
+
+#------------------------------------------------------------------------------#
+#                                 NMFs                                         #
+#------------------------------------------------------------------------------#
+
+NMF_scRNAseq:
+    walltime: 48:00:00
+    cores: 48
+    memory: 200g 
+
+NMF_method2_reg:
+    walltime: 10:00:00
+    cores: 48
+    memory: 200g 
+
+NMF_method2_noreg:
+    walltime: 24:00:00
+    cores: 48
+    memory: 200g 
+
+NMF_method1_reg:
+    walltime: 10:00:00
+    cores: 48
+    memory: 200g 
+
+NMF_method1_noreg:
+    walltime: 10:00:00
+    cores: 48
+    memory: 200g 
+
+NMF_pySCENIC:
+    walltime: 10:00:00
+    cores: 48
+    memory: 200g 
+
+

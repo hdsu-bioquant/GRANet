@@ -1,0 +1,80 @@
+#------------------------------------------------------------------------------#
+#                                Main settings                                 #
+#------------------------------------------------------------------------------#
+# Paths to data and results
+#main_working_directory: /media/ag-cherrmann/projects/10_charite_covid19/
+#main_working_directory: /home/bq_aquintero/10_charite_covid19/
+main_working_directory: /home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/
+
+genome: hg19 #hg19 or hg38 , mm9
+#genome: hg19 #hg19 or hg38 , mm9
+
+# Main seurat object save as an RDS file containing counts for the RNA-seq data
+# If using multiple datasets, they should be combined into this unique file
+# seuratobj: "/home/bq_aquintero/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_Adult_9Tissues_Seurat.RDS"
+seuratobj: "/home/bq_aquintero/projects/charite_covid19_TF_activity/results/scrna/seurat/rna_seurat_int_annot_transfer.RDS"
+# name of the column in meta.data of seurat with desired annotation
+annotCol: "BioClassification" 
+#annotCol: "Annotation" 
+# List of ArrowFiles for each scATAC-seq dataset 
+# (see ArchR documentation on how to create ArrowFiles)
+Arrowfiles: 
+    SC2_10025AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10025AT-NS02FU.arrow
+    SC2_30026AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-30026AT-NS02FU.arrow
+    SC2_21001AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21001AT-NS01FU.arrow
+    SC2_20025AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-20025AT-NS02FU.arrow
+    SC2_30011AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-30011AT-NS02FU.arrow
+    SC2_21004AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21004AT-NS01FU.arrow
+    SC2_21018AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21018AT-NS01FU.arrow
+    SC2_21013AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21013AT-NS01FU.arrow
+    SC2_21010AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21010AT-NS01FU.arrow
+    SC2_20017AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-20017AT-NS02FU.arrow
+    SC2_10021AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10021AT-NS02FU.arrow
+    SC2_10012AT_NS02FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10012AT-NS02FU.arrow
+    SC2_21011AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21011AT-NS01FU.arrow
+    SC2_21016AT_NS01FU: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21016AT-NS01FU.arrow
+    SC2_10021AT_NS03FU2: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10021AT-NS03FU2.arrow
+    SC2_50069AT_NS01: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-50069AT-NS01.arrow
+    SC2_50049AT_NS01: /home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-50049AT-NS01.arrow
+
+# List of Transcription factor, it should be in Symbols
+TF_list:  /home/bq_aquintero/10_charite_covid19/src/charite_covid19/aux/scenic/allTFs_hg38.txt
+# TF_list:  "/home/bq_aquintero/projects/mouse_atlas_TF_activity/data/mm_mgi_tfs.txt"
+#------------------------------------------------------------------------------#
+#                         Pipeline Steps to Run                                #
+#------------------------------------------------------------------------------#
+phase01_scATAC:
+    transferRNAlabels : True
+    motifsMatch       : True
+
+phase02_scRNA: 
+    pySCENIC : False
+
+phase03_TFactivity:
+    specificRegulons : True
+    NMF_AUCscores    : True
+
+#------------------------------------------------------------------------------#
+#                          GRNBoost settings                                   #
+#------------------------------------------------------------------------------#
+GRNBoost:
+  HVG: "all"
+
+
+
+#------------------------------------------------------------------------------#
+#            TF activity integrating scRNAseq and scATACseq data               #
+#------------------------------------------------------------------------------#
+# for building the regulon: The importance represents the relevance that the 
+# transcription factor (regulator) has in the prediction of the target. 
+tfActity_int:
+  cores: 2 # how many cores to use in parallel
+  motif_deviation:
+    motifMatch_pval: 0.05
+  regulons:
+    importance_threshold: 50 # in percentile
+    promoter_size       : 500000
+    min_regulon_size    : 20
+  regulonsMethod2:
+    cellWithPeak : 0.01 # Minimum fraction of cells for a given cell type, should have this peak to conserve it
+    
