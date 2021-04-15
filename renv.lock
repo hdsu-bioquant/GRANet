@@ -114,7 +114,7 @@
       "RemoteUsername": "wurst-theke",
       "RemoteRef": "HEAD",
       "RemoteSha": "05b9c903af8b9c508eabcc01e8166b0e4df72d44",
-      "Hash": "45456bd37adfdeddcb15c735d6b40bf6"
+      "Hash": "62e07674d2f981d564f1cc1e501691d3"
     },
     "CNEr": {
       "Package": "CNEr",
@@ -217,13 +217,6 @@
       "Version": "1.12.0",
       "Source": "Bioconductor",
       "Hash": "e520c415dad9c8b37a2daaa1208c8c9e"
-    },
-    "GGally": {
-      "Package": "GGally",
-      "Version": "2.0.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "f767c7f049252543d140b8154fa45a36"
     },
     "GO.db": {
       "Package": "GO.db",
@@ -358,12 +351,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "623df73d89a89b66e6519aad0c8f1dc3"
-    },
-    "OrganismDbi": {
-      "Package": "OrganismDbi",
-      "Version": "1.32.0",
-      "Source": "Bioconductor",
-      "Hash": "dc29ad9ced0243adb1419cad92f21fc7"
     },
     "Polychrome": {
       "Package": "Polychrome",
@@ -504,10 +491,10 @@
     },
     "RcppParallel": {
       "Package": "RcppParallel",
-      "Version": "5.0.2",
+      "Version": "5.0.3",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "551d50addb18c7b99637aa377a25afc8"
+      "Hash": "157a1155dc1bdbb6aba8dad88c9ef460"
     },
     "RcppProgress": {
       "Package": "RcppProgress",
@@ -515,13 +502,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "1c0aa18b97e6aaa17f93b8b866c0ace5"
-    },
-    "RcppRoll": {
-      "Package": "RcppRoll",
-      "Version": "0.3.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "84a03997fbb5acfb3c9b43bad88fea1f"
     },
     "Rhdf5lib": {
       "Package": "Rhdf5lib",
@@ -580,30 +560,11 @@
       "Repository": "CRAN",
       "Hash": "6f4b7f84ec7b7fd33482a7c37892f0bd"
     },
-    "Signac": {
-      "Package": "Signac",
-      "Version": "1.1.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "signac",
-      "RemoteUsername": "timoast",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "87da37683099b885fb847700dab47255fa59f01d",
-      "Hash": "f4b046f14ea8783d5ded7b300f85c55c"
-    },
     "SingleCellExperiment": {
       "Package": "SingleCellExperiment",
       "Version": "1.12.0",
       "Source": "Bioconductor",
       "Hash": "40badd4c5dcff81480c77a17b3b811bb"
-    },
-    "SnowballC": {
-      "Package": "SnowballC",
-      "Version": "0.7.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "bc26e07c0d747fd287c370fe355e7b85"
     },
     "SummarizedExperiment": {
       "Package": "SummarizedExperiment",
@@ -1191,12 +1152,6 @@
       "RemoteSha": "1ecc42e4d8f66f31fce6b086fcc57b1f70999fae",
       "Hash": "ba622c6ccf7c7ab06ef21e1300545d4a"
     },
-    "ggbio": {
-      "Package": "ggbio",
-      "Version": "1.38.0",
-      "Source": "Bioconductor",
-      "Hash": "82c5c9aa22be828f8dd6b5889032e1a0"
-    },
     "ggforce": {
       "Package": "ggforce",
       "Version": "0.3.2",
@@ -1238,13 +1193,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "b5c4e55a3856dff3c05595630a40edfc"
-    },
-    "ggseqlogo": {
-      "Package": "ggseqlogo",
-      "Version": "0.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "461f7f16a39039e9ca8ea4b647c4094d"
     },
     "ggupset": {
       "Package": "ggupset",
@@ -1572,13 +1520,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "b0edacc02f7a3dad41a1afc385e929f4"
-    },
-    "lsa": {
-      "Package": "lsa",
-      "Version": "0.73.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "6ce0ffe288e17b053c4604f3daa306cd"
     },
     "lubridate": {
       "Package": "lubridate",
@@ -2009,13 +1950,6 @@
       "Repository": "CRAN",
       "Hash": "b06bfb3504cc8a4579fd5567646f745b"
     },
-    "reshape": {
-      "Package": "reshape",
-      "Version": "0.8.8",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "0f4d941129e00ed34a7d192b1da7ccef"
-    },
     "reshape2": {
       "Package": "reshape2",
       "Version": "1.4.4",
@@ -2431,13 +2365,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "181d1a31b1ba2009ef20926f2ee0570c"
-    },
-    "webshot": {
-      "Package": "webshot",
-      "Version": "0.5.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "e99d80ad34457a4853674e89d5e806de"
     },
     "whisker": {
       "Package": "whisker",
