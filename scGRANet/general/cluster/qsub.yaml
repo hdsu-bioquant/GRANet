@@ -15,12 +15,12 @@ __default__:
 #------------------------------------------------------------------------------#
 tranferRNA2atac:
     walltime: 10:00:00
-    memory: 400g 
+    memory: 200g 
     cores: 20
 
 atacMotifMatch:
     walltime: 10:00:00
-    memory: 400g 
+    memory: 200g 
     cores: 20
 
 

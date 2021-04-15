@@ -11,3 +11,4 @@ Rplots.pdf
 tmp/
 **/*.html
 scGRANet/archive/
+.Rproj.user
