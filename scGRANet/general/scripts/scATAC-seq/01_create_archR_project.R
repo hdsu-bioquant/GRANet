@@ -15,28 +15,28 @@ ArrowFiles  <- as.character(args[6:length(args)])
 # Ncores      <- 20
 # ArrowFiles  <- c("~/projects/mouse_atlas_TF_activity/data/scatac/Lung2_62216_barcoded.bam.arrow")
 # #------------------------------------------------------------------------------#
-p_archrproj <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/results/scatac/archr/ArchR01_transferLabels/" 
-p_seuratobj <-  "/home/bq_aquintero/projects/charite_covid19_TF_activity/results/scrna/seurat/rna_seurat_int_annot_transfer.RDS"
-annotCol    <- "BioClassification"
-genome      <- "hg19"
-Ncores      <- 20
-ArrowFiles  <- c("/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10025AT-NS02FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-30026AT-NS02FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21001AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-20025AT-NS02FU.arrow",
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-30011AT-NS02FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21004AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21018AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21013AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21010AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-20017AT-NS02FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10021AT-NS02FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10012AT-NS02FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21011AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21016AT-NS01FU.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10021AT-NS03FU2.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-50069AT-NS01.arrow", 
-                 "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-50049AT-NS01.arrow")
+# p_archrproj <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/results/scatac/archr/ArchR01_transferLabels/" 
+# p_seuratobj <-  "/home/bq_aquintero/projects/charite_covid19_TF_activity/results/scrna/seurat/rna_seurat_int_annot_transfer.RDS"
+# annotCol    <- "BioClassification"
+# genome      <- "hg19"
+# Ncores      <- 20
+# ArrowFiles  <- c("/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10025AT-NS02FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-30026AT-NS02FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21001AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-20025AT-NS02FU.arrow",
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-30011AT-NS02FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21004AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21018AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21013AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21010AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-20017AT-NS02FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10021AT-NS02FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10012AT-NS02FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21011AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-21016AT-NS01FU.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-10021AT-NS03FU2.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-50069AT-NS01.arrow", 
+#                  "/home/bq_aquintero/projects/charite_covid19_TF_activity/data/scatac/SC2-50049AT-NS01.arrow")
 #------------------------------------------------------------------------------#
 
 library(ArchR)
@@ -258,7 +258,7 @@ seuratobj <- readRDS(p_seuratobj)
 head(seuratobj@meta.data)
 DefaultAssay(seuratobj) <- "RNA"
 
-table(seuratobj$BioClassification)
+#table(seuratobj$BioClassification)
 
 archrproj2 <- addGeneIntegrationMatrix(
   ArchRProj = archrproj2, 

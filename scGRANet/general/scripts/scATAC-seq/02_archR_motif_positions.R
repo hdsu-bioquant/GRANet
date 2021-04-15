@@ -9,9 +9,9 @@ Ncores         <- as.numeric(args[3])
 # p_archrprojout <- "~/projects/mouse_atlas_TF_activity/adult_9tissues/results/scatac/archr/ArchR02_MotifMatch/"
 # Ncores      <- 20
 #------------------------------------------------------------------------------#
-p_archrproj    <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/results/scatac/archr/ArchR01_transferLabels"
-p_archrprojout <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/results/scatac/archr/ArchR02_MotifMatch/"
-Ncores      <- 20
+# p_archrproj    <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/results/scatac/archr/ArchR01_transferLabels"
+# p_archrprojout <- "/home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna21/results/scatac/archr/ArchR02_MotifMatch/"
+# Ncores      <- 20
 
 library(ArchR)
 library(patchwork)
