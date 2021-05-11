@@ -136,3 +136,24 @@ seuratobj
 isexpressed <- colSums(seuratobj@assays$RNA@counts > 0)
 hist(isexpressed)
 table(isexpressed > 0)
+
+
+#------------------------------------------------------------------------------#
+#                               sample dataset                                 #
+#------------------------------------------------------------------------------#
+seuratobj_1K  <- seuratobj[,sort(sample(ncol(seuratobj), size=1000))]
+seuratobj_5K  <- seuratobj[,sort(sample(ncol(seuratobj), size=5000))]
+seuratobj_10K <- seuratobj[,sort(sample(ncol(seuratobj), size=10000))]
+seuratobj_1K
+seuratobj_5K
+seuratobj_10K
+
+
+out_path <- "/home/bq_aquintero/projects/GRANet/mouse_atlas_8tissues/data/scrna"
+dir.create(out_path, recursive = TRUE)
+
+
+saveRDS(seuratobj,     file.path(out_path, "mouse_scrna_42K.RDS"))
+saveRDS(seuratobj_1K,  file.path(out_path, "mouse_scrna_1K.RDS"))
+saveRDS(seuratobj_5K,  file.path(out_path, "mouse_scrna_5K.RDS"))
+saveRDS(seuratobj_10K, file.path(out_path, "mouse_scrna_10K.RDS"))
