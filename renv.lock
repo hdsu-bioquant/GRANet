@@ -1959,10 +1959,10 @@
     },
     "reticulate": {
       "Package": "reticulate",
-      "Version": "1.18",
+      "Version": "1.20",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "fbd35cac6ae7554d0e4f440bca1adf3a"
+      "Hash": "30ab0ea8c8d3dd16a3fa06903449bbfb"
     },
     "rex": {
       "Package": "rex",
