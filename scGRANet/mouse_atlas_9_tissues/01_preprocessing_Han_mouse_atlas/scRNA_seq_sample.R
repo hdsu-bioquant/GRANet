@@ -1,0 +1,96 @@
+library(tidyverse)
+
+#------------------------------------------------------------------------------#
+#                                 Create sparse matrix                         #
+#------------------------------------------------------------------------------#
+# It was not possible to read hd5 file into R
+# the file was readed into python and:
+# import scanpy
+# x = scanpy.read_h5ad('/home/bq_aquintero/projects/mouse_brain_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge.h5ad')
+# x.write_csvs('/home/bq_aquintero/projects/mouse_brain_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge.csv', skip_data = False)
+
+# # Read data
+# # Cell names
+# x1 <- read_csv("~/projects/mouse_brain_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge/obs.csv") # cell Names
+# # Gene Names
+# x2 <- read_csv("~/projects/mouse_brain_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge/var.csv") # Gene names
+# # data
+# x <- read_csv("~/projects/mouse_brain_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge/X.csv", col_names=x2$index) # Gene names
+# x <- as.matrix(x)
+# rownames(x) <- x1$index
+#
+# x_sparse <- Matrix(x, sparse = TRUE)
+# saveRDS(x_sparse, "~/projects/mouse_brain_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge.RDS")
+
+#------------------------------------------------------------------------------#
+#                              Save data 9 tissues                             #
+#------------------------------------------------------------------------------#
+x_sparse <- readRDS("~/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge.RDS")
+x_sparse
+
+# Read cell annotation
+cellAnnot <- read_csv("~/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_BatchRemoved_Merge_dge_cellinfo.csv")
+
+# Read cell annotation
+cellID <- read_csv("~/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_CellAssignments.csv")
+
+cellAnnot %>%
+  rename(Cell.name = index) %>%
+  left_join(cellID,  by="Cell.name")
+
+cellAnnot <- cellAnnot %>%
+  rename(Cell.name = index) %>%
+  left_join(cellID,  by="Cell.name")
+
+
+byTissue <- cellAnnot %>%
+  group_by(tissue) %>%
+  summarise(n = n())
+
+tissuesList <- c(
+  "AdultBrain",
+  "AdultLung",
+  "AdultKidney",
+  "AdultBoneMarrow",
+  "AdultLiver",
+  "AdultThymus",
+  "AdultSpleen",
+  "AdultTestis",
+  "AdultSmallIntestine"
+)
+# Select only desired tissues
+unique(cellAnnot$tissue)
+table(is.na(cellAnnot$Annotation))
+
+cellAnnot <- cellAnnot %>%
+  dplyr::filter(tissue %in% tissuesList)
+unique(cellAnnot$tissue)
+table(is.na(cellAnnot$Annotation))
+
+unique(cellAnnot$Annotation)
+
+table(rownames(x_sparse) %in% cellAnnot$Cell.name)
+table(cellAnnot$Cell.name %in% rownames(x_sparse))
+
+idx <- match(cellAnnot$Cell.name, rownames(x_sparse))
+x_sparse <- x_sparse[idx, ]
+dim(x_sparse)
+
+cellAnnot <- as.data.frame(cellAnnot)
+rownames(cellAnnot) <- cellAnnot$Cell.name
+# Create seurat object
+seuratobj <- CreateSeuratObject(counts = t(x_sparse),
+                                min.cells = 3, min.features = 200,
+                                meta.data = cellAnnot)
+seuratobj
+dim(seuratobj)
+dim(seuratobj@meta.data)
+head(seuratobj@meta.data)
+
+
+
+saveRDS(seuratobj, "~/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_Adult_9Tissues_Seurat.RDS")
+
+
+#AdultBrainLungKidneyBoneMarrowLiverThymusSpleenTestisSmallIntestine
+
