@@ -157,3 +157,16 @@ saveRDS(seuratobj,     file.path(out_path, "mouse_scrna_42K.RDS"))
 saveRDS(seuratobj_1K,  file.path(out_path, "mouse_scrna_1K.RDS"))
 saveRDS(seuratobj_5K,  file.path(out_path, "mouse_scrna_5K.RDS"))
 saveRDS(seuratobj_10K, file.path(out_path, "mouse_scrna_10K.RDS"))
+
+seuratobj@meta.data %>%
+  ggplot(aes(x = tissue)) +
+  geom_bar() +
+seuratobj_1K@meta.data %>%
+  ggplot(aes(x = tissue)) +
+  geom_bar() +
+seuratobj_5K@meta.data %>%
+  ggplot(aes(x = tissue)) +
+  geom_bar() +
+seuratobj_10K@meta.data %>%
+  ggplot(aes(x = tissue)) +
+  geom_bar()
