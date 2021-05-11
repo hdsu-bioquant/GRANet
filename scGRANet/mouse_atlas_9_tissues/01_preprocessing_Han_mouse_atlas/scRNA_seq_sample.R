@@ -55,7 +55,7 @@ tissuesList <- c(
   "AdultLiver",
   "AdultThymus",
   "AdultSpleen",
-  "AdultTestis",
+  #"AdultTestis",
   "AdultSmallIntestine"
 )
 # Select only desired tissues
@@ -78,6 +78,11 @@ dim(x_sparse)
 
 cellAnnot <- as.data.frame(cellAnnot)
 rownames(cellAnnot) <- cellAnnot$Cell.name
+
+#------------------------------------------------------------------------------#
+#                             Create Seurat object.                            #
+#------------------------------------------------------------------------------#
+library(Seurat)
 # Create seurat object
 seuratobj <- CreateSeuratObject(counts = t(x_sparse),
                                 min.cells = 3, min.features = 200,
@@ -89,8 +94,45 @@ head(seuratobj@meta.data)
 
 
 
-saveRDS(seuratobj, "~/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_Adult_9Tissues_Seurat.RDS")
+#saveRDS(seuratobj, "~/projects/mouse_atlas_TF_activity/data/scrna/Han_atlas/MCA_Adult_9Tissues_Seurat.RDS")
 
 
-#AdultBrainLungKidneyBoneMarrowLiverThymusSpleenTestisSmallIntestine
+seuratobj@meta.data %>%
+  ggplot(aes(x = tissue)) +
+  geom_bar()
 
+
+#------------------------------------------------------------------------------#
+#                   Filter genes expressed in few cells                        #
+#------------------------------------------------------------------------------#
+# isexpressed <- rowSums(seuratobj@assays$RNA@counts > 0)
+# hist(isexpressed)
+# table(isexpressed > 0)
+# # expressed in at least 5 percent of the cells
+# table(isexpressed > ncol(seuratobj)*0.10)
+#
+
+percent <- 0.01
+minCountsPerGene <- 3 * percent * ncol(seuratobj@assays$RNA@counts)
+nCountsPerGene <- rowSums(seuratobj@assays$RNA@counts, na.rm = T)
+table(nCountsPerGene > minCountsPerGene)
+
+minSamples <- ncol(seuratobj@assays$RNA@counts) * percent
+nCellsPerGene <- rowSums(seuratobj@assays$RNA@counts>0, na.rm = T)
+table(nCellsPerGene > minSamples)
+
+table((nCellsPerGene > minSamples) & (nCountsPerGene > minCountsPerGene))
+table((nCellsPerGene > minSamples) + (nCountsPerGene > minCountsPerGene))
+
+
+
+idx <- (nCellsPerGene > minSamples) & (nCountsPerGene > minCountsPerGene)
+table(idx)
+seuratobj <- seuratobj[idx,]
+seuratobj
+
+
+# Check if all cells have expression
+isexpressed <- colSums(seuratobj@assays$RNA@counts > 0)
+hist(isexpressed)
+table(isexpressed > 0)
