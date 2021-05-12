@@ -14,9 +14,12 @@
 #' @export
 #'
 #' @examples
-ButchR_NMF <- setClass(
+GRANet <- setClass(
   Class = "GRANet",
   slots = list(GeneExpression   = "list",
+               SeuratObject     = "Seurat",
+               cssCluster       = "character",
+               ProjectMetadata  = "list",
                ArchR            = "list",
                TFmotif_location = "list",
                Coexprs_modules  = "data.frame",
@@ -27,6 +30,64 @@ ButchR_NMF <- setClass(
 
 
 
+CreateGRAnetObject <- function(
+  SeuratObject,
+  cssCluster,
+  outputDirectory = "GRANetProject",
+  threads
+){
+
+  # Create output directory
+  dir.create(outputDirectory, showWarnings=FALSE,recursive=TRUE)
+
+
+  if(!cssCluster %in% colnames(SeuratObject@meta.data)){
+    stop("cssCluster not in meta.data of Seurat Object")
+  }
+  # seuratRNA <- seRNA
+  # seuratRNA$Group <- paste0(seRNA@meta.data[,groupRNA])
+  # rm(seRNA)
+  #------------------------------------#
+  #           Add cluster ID           #
+  #------------------------------------#
+  SeuratObject$cssCluster <- SeuratObject@meta.data[,cssCluster]
+  #------------------------------------#
+  #           Create loom              #
+  #------------------------------------#
+
+  #countsmat <- SeuratObject@assays$RNA@counts
+  #annot <- seuratobj@meta.data
+  #dim(countsmat)
+
+  p_loomOut <- file.path(outputDirectory, "Coexprs_modules/counts.loom")
+
+  dir.create(dirname(p_loomOut), recursive = TRUE)
+
+  ### Create the minimal loom file
+  # build_loom(
+  #   file.name = p_loomOut,
+  #   dgem      = GetAssayData(object = SeuratObject, slot = "counts"),
+  #   title     = "scRNA-seq",
+  #   #genome    = "hg19",
+  #   default.embedding      = seuratobj@reductions$umap@cell.embeddings,
+  #   default.embedding.name = "UMAP of full expression matrix"
+  # )
+
+  SCopeLoomR::build_loom(
+    file.name = p_loomOut,
+    dgem      = Seurat::GetAssayData(object = SeuratObject, slot = "counts"),
+    title     = "scRNA-seq"
+  )
+
+  #saveRDS(seuratobj, p_seuratobjOut)
+
+  GRANetObject <- new(
+    Class = 'GRANet',
+    SeuratObject = SeuratObject,
+    ProjectMetadata = list(outputDirectory=outputDirectory)
+  )
+
+}
 
 
 #' Title
