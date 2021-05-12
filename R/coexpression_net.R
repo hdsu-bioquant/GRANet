@@ -34,8 +34,12 @@ CreateGRAnetObject <- function(
   SeuratObject,
   cssCluster,
   outputDirectory = "GRANetProject",
+  Force=FALSE,
   threads
 ){
+  if(dir.exists(outputDirectory) & Force==FALSE){
+    stop("GRANet output directory already exists, use Force=TRUE to overwrite")
+  }
 
   # Create output directory
   dir.create(outputDirectory, showWarnings=FALSE, recursive=TRUE)
@@ -60,6 +64,9 @@ CreateGRAnetObject <- function(
   #dim(countsmat)
 
   p_loomOut <- file.path(outputDirectory, "Coexprs_modules/counts.loom")
+  if(file.exists(p_loomOut)){
+    unlink(dirname(p_loomOut), recursive = TRUE)
+  }
 
   dir.create(dirname(p_loomOut), showWarnings=FALSE, recursive=TRUE)
 
@@ -73,20 +80,23 @@ CreateGRAnetObject <- function(
   #   default.embedding.name = "UMAP of full expression matrix"
   # )
 
-  suppressWarnings(SCopeLoomR::build_loom(
+  suppressMessages(suppressWarnings(SCopeLoomR::build_loom(
     file.name = p_loomOut,
     dgem      = Seurat::GetAssayData(object = SeuratObject, slot = "counts"),
     title     = "scRNA-seq"
-  ))
+  )))
+  SCopeLoomR::close_loom(p_loomOut)
 
   #saveRDS(seuratobj, p_seuratobjOut)
 
   GRANetObject <- new(
     Class = 'GRANet',
     SeuratObject = SeuratObject,
-    ProjectMetadata = list(outputDirectory=outputDirectory)
+    ProjectMetadata = list(outputDirectory=outputDirectory,
+                           pathLoom = p_loomOut)
   )
 
+  return(GRANetObject)
 }
 
 
