@@ -73,11 +73,11 @@ CreateGRAnetObject <- function(
   #   default.embedding.name = "UMAP of full expression matrix"
   # )
 
-  SCopeLoomR::build_loom(
+  suppressWarnings(SCopeLoomR::build_loom(
     file.name = p_loomOut,
     dgem      = Seurat::GetAssayData(object = SeuratObject, slot = "counts"),
     title     = "scRNA-seq"
-  )
+  ))
 
   #saveRDS(seuratobj, p_seuratobjOut)
 
