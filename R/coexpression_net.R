@@ -38,7 +38,7 @@ CreateGRAnetObject <- function(
 ){
 
   # Create output directory
-  dir.create(outputDirectory, showWarnings=FALSE,recursive=TRUE)
+  dir.create(outputDirectory, showWarnings=FALSE, recursive=TRUE)
 
 
   if(!cssCluster %in% colnames(SeuratObject@meta.data)){
@@ -61,7 +61,7 @@ CreateGRAnetObject <- function(
 
   p_loomOut <- file.path(outputDirectory, "Coexprs_modules/counts.loom")
 
-  dir.create(dirname(p_loomOut), recursive = TRUE)
+  dir.create(dirname(p_loomOut), showWarnings=FALSE, recursive=TRUE)
 
   ### Create the minimal loom file
   # build_loom(
