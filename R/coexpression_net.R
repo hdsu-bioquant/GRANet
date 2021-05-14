@@ -101,12 +101,21 @@ CreateGRAnetObject <- function(
 
 #' Title
 #'
-#' @param obj
+#' @param GRANetObject
 #'
 #' @return
 #' @export
 #'
 #' @examples
-gene_coex_net <- function(obj){
-  obj
+gene_coex_net <- function(GRANetObject){
+  if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
+    stop("Loom file with counts not found. Did you move the output directory from
+         its original location? You can reset it with the function
+         set_GRANet_output_directory")
+  }
+  GRANetObject@ProjectMetadata$pathLoom
 }
+environment(gene_coex_net) <- asNamespace('GRANet')
+
+
+gene_coex_net(GRANetObject = granetobj)
