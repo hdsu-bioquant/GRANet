@@ -136,6 +136,7 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
   #------------------------------------#
   #   Import GRNBoost2 function        #
   #------------------------------------#
+  message("Loading GRNBoost2...")
   path <- system.file(package = "GRANet")
   reticulatedBoost <- reticulate::import_from_path("reticulatedBoost", path = path)
   coexpression_modules <- reticulatedBoost$arboreto_functionalized$coexpression_modules
@@ -143,9 +144,10 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
   #------------------------------------#
   #   Compute coexpression modules     #
   #------------------------------------#
+  message("Computing Co-expression modules...")
   cmods <- coexpression_modules(method               = "grnboost2",
                                 expression_mtx_fname = pathLoom,
-                                tfs_fname            = TFs,
+                                tf_names             = TFs,
                                 num_workers          = as.integer(threads),
                                 sparse               = TRUE)
   GRANetObject@Coexprs_modules <- cmods
@@ -153,8 +155,11 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
 
   return(GRANetObject)
 }
+
+
 #environment(compute_coexpression_modules) <- asNamespace('GRANet')
-#compute_coexpression_modules(GRANetObject = granetobj)
+#compute_coexpression_modules(GRANetObject = granetobj, TFs = readLines("data/mm_mgi_tfs.txt"))
+compute_coexpression_modules(GRANetObject = granetobj, TFs = head(readLines("data/mm_mgi_tfs.txt")), threads = 8)
 #
 # "GRANetProject/Coexprs_modules/mm_mgi_tfs.txt"
 #

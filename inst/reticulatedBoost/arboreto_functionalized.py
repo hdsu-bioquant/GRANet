@@ -38,7 +38,7 @@ def run_infer_partial_network(target_gene_index):
     )
     return n
 
-def coexpression_modules(method, expression_mtx_fname, tfs_fname, num_workers,
+def coexpression_modules(method, expression_mtx_fname, tf_names, num_workers,
     transpose='yes', sparse=True, cell_id_attribute='CellID', gene_attribute='Gene', seed=None):
         
     global gene_names
@@ -57,14 +57,14 @@ def coexpression_modules(method, expression_mtx_fname, tfs_fname, num_workers,
         expression_mtx_fname, (transpose == 'yes'), sparse, cell_id_attribute, gene_attribute
     )
 
-    print(f'sparse sparse: {sparse}', file=sys.stdout)
+    #print(f'sparse sparse: {sparse}', file=sys.stdout)
     if sparse:
         gene_names = ex_matrix[1]
         ex_matrix = ex_matrix[0]
-        print(f'gene_names sparse: {gene_names}', file=sys.stdout)
+        #print(f'gene_names sparse: {gene_names}', file=sys.stdout)
     else:
         gene_names = ex_matrix.columns
-        print(f'gene_names: {gene_names}', file=sys.stdout)
+        #print(f'gene_names: {gene_names}', file=sys.stdout)
 
     end_time = time.time()
     print(
@@ -72,8 +72,8 @@ def coexpression_modules(method, expression_mtx_fname, tfs_fname, num_workers,
         file=sys.stdout,
     )
 
-    tf_names = load_tf_names(tfs_fname)
-    print(f'Loaded {len(tf_names)} TFs...', file=sys.stdout)
+    #tf_names = load_tf_names(tfs_fname)
+    #print(f'Loaded {len(tf_names)} TFs...', file=sys.stdout)
 
     ex_matrix, gene_names, tf_names = _prepare_input(ex_matrix, gene_names, tf_names)
     tf_matrix, tf_matrix_gene_names = to_tf_matrix(ex_matrix, gene_names, tf_names)
