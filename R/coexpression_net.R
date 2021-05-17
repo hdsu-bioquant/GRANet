@@ -107,8 +107,9 @@ CreateGRAnetObject <- function(
 
   return(GRANetObject)
 }
-environment(CreateGRAnetObject) <- asNamespace('GRANet')
-granetobj <- CreateGRAnetObject(SeuratObject = seuratobj, cssCluster = "tissue", Force=TRUE )
+#environment(CreateGRAnetObject) <- asNamespace('GRANet')
+#granetobj <- CreateGRAnetObject(SeuratObject = seuratobj, cssCluster = "tissue", Force=TRUE )
+
 #' Title
 #'
 #' @param GRANetObject
@@ -117,7 +118,7 @@ granetobj <- CreateGRAnetObject(SeuratObject = seuratobj, cssCluster = "tissue",
 #' @export
 #'
 #' @examples
-gene_coex_net <- function(GRANetObject, TFs, threads=1){
+compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
   if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
     stop("Loom file with counts not found. Did you move the output directory from
          its original location? You can reset it with the function
@@ -127,19 +128,33 @@ gene_coex_net <- function(GRANetObject, TFs, threads=1){
   pathAdjacencies <- file.path(outputDirectory, "Coexprs_modules/expr_mat_adjacencies.tsv")
 
   pathLoom <- GRANetObject@ProjectMetadata$pathLoom
-  gnrboos2 <- arboreto_with_multiprocessing.py
+  #gnrboos2 <- arboreto_with_multiprocessing.py
 
-  pathTFs
-
-  cmd <- sprintf("-o %s --num_workers %s %s %s",
-                 pathAdjacencies, threads, pathLoom, pathTFs)
-
-  "arboreto_with_multiprocessing.py -o /home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna57/results/scrna/SCENIC/expr_mat.adjacencies.tsv --num_workers 54 /home/bq_aquintero/projects/charite_covid19_TF_activity/atac17_rna57/results/scrna/SCENIC/rnaseq_counts.loom /home/bq_aquintero/projects/GRANet/src/GRANet/scGRANet/aux/scenic/allTFs_hg38.txt"
+  #pathTFs
 
 
-  run <- system2(pathToMacs2, cmd, wait=TRUE, stdout=NULL, stderr=NULL)
+  #------------------------------------#
+  #   Import GRNBoost2 function        #
+  #------------------------------------#
+  path <- system.file(package = "GRANet")
+  reticulatedBoost <- reticulate::import_from_path("reticulatedBoost", path = path)
+  coexpression_modules <- reticulatedBoost$arboreto_functionalized$coexpression_modules
 
+  #------------------------------------#
+  #   Compute coexpression modules     #
+  #------------------------------------#
+  cmods <- coexpression_modules(method               = "grnboost2",
+                                expression_mtx_fname = pathLoom,
+                                tfs_fname            = TFs,
+                                num_workers          = as.integer(threads),
+                                sparse               = TRUE)
+  GRANetObject@Coexprs_modules <- cmods
+
+
+  return(GRANetObject)
 }
+#environment(compute_coexpression_modules) <- asNamespace('GRANet')
+#compute_coexpression_modules(GRANetObject = granetobj)
 #
 # "GRANetProject/Coexprs_modules/mm_mgi_tfs.txt"
 #
