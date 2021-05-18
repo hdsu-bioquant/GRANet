@@ -98,7 +98,8 @@ add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=
 }
 
 # granetobj <- compute_coexpression_modules(GRANetObject = granetobj, TFs = head(readLines("data/mm_mgi_tfs.txt")), threads = 8)
-# add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
+#granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
+#saveRDS(granetobj, "GRANetProject/granetobj.RDS")
 
 #environment(compute_coexpression_modules) <- asNamespace('GRANet')
 #compute_coexpression_modules(GRANetObject = granetobj, TFs = readLines("data/mm_mgi_tfs.txt"))
