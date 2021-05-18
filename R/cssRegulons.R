@@ -2,14 +2,23 @@
 granetobj
 granetobj@ProjectMetadata$Genome <- "mm9"
 
+PeakMatrix
+getPositions
+getPeakSet
+
 library(dplyr)
 
-extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj){
+archrproj@cellColData[, "tissue"]
+
+# cellWithPeak minimum percentage of cells in a cluster, that are required to have at least one insertion in a peak to keep it
+
+extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
   genome <- GRANetObject@ProjectMetadata$Genome
 
   #----------------------------------------------#
   # Find genes part of the co-expression modules #
   #----------------------------------------------#
+  message("Extracting genomic location genes in co-expression modules...")
   if (genome == "hg19") {
     library(EnsDb.Hsapiens.v75)
     genesGr <- genes(EnsDb.Hsapiens.v75)
@@ -37,7 +46,8 @@ extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj){
   #---------------------------------------------------#
   # Filter TFs that have no motif in the ATACseq data #
   #---------------------------------------------------#
-  motifPositions <- getPositions(ArchRProjectObj)
+  message("Filtering TFs from co-expression modules not found in the ArchR project peak annotation position (motifs)...")
+  motifPositions <- ArchR::getPositions(ArchRProjectObj)
 
   coexprsModulesTFs <- tibble(motif_archr = names(motifPositions),
                       TF_archr    = sub("_.*", "", names(motifPositions))) %>%
@@ -52,79 +62,85 @@ extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj){
 
   # Remove motifs for TF not found
   motifPositions <- motifPositions[names(motifPositions) %in% coexprsModulesTFs$motif_archr]
-  length(motifPositions)
-  motifPositions
+
+
+  #-------------------------------------------#
+  # Find genes with a motif in their promoter #
+  #-------------------------------------------#
+  message("Extracting peak matrix from ArchR project...")
+  # Find peaks around the TSS of the target genes
+  # To identify genes that are cis-regulated by the TFs
+  # And later remove genes that are downstream target of the TF
+
+  # Split peaks into peaks found by Cell type
+
+  # Load peaks for each cell type
+  peaksGr <- ArchR::getPeakSet(ArchRProjectObj)
+
+  # Get peaks matrix
+  peakMatrix <- ArchR::getMatrixFromProject(ArchRProjectObj, useMatrix = "PeakMatrix", logFile=NULL)
+  peakMatrix <- SummarizedExperiment::assay(peakMatrix)
+
+  #return(peakMatrix)
+
+  # Get peaks by cell type
+  cellTypes <- sort(unique(ArchRProjectObj@cellColData[, cssClusterArchR]))
+  names(cellTypes) <- cellTypes
+  peaksGr_CellTypes <- lapply(cellTypes, function(cellType){
+    # Keep peak if at least one insertion in x% of cells from group
+    idx <- which(ArchRProjectObj@cellColData[, cssClusterArchR] == cellType)
+    peakMatrixCellType <- peakMatrix[,idx]
+    percentCells       <- ncol(peakMatrixCellType)*cellsWithPeak
+    nCellWithPeak      <- rowSums(peakMatrixCellType > 0)
+    peaksGr[nCellWithPeak > percentCells]
+  })
+
+  peaksGr_CellTypes
+
+  message("Computing list of motifs position by cell type...")
+  # Create list of motif position by cell type
+  motifPositions_Cell <- mclapply(peaksGr_CellTypes, function(peaksGr_Cell){
+    endoapply(motifPositions, subsetByOverlaps, peaksGr_Cell)
+  }, mc.cores = threads)
+
+  # Find genes with motif in promoter
+  promoters <- trim(tssGr+promoter_size)
+
+  genesMotif_Cell <- lapply(motifPositions_Cell, function(motifPositions_Cellgl){
+    genesMotif_l <- mclapply(setNames(names(motifPositions_Cellgl), names(motifPositions_Cellgl)), function(TF){
+      genesWithMotif <- subsetByOverlaps(promoters, motifPositions_Cellgl[[TF]])
+      tibble(TF = TF, target = genesWithMotif$symbol)
+    }, mc.cores = threads)
+
+    #print(genesMotif_l)
+    bind_rows(genesMotif_l) %>%
+      dplyr::mutate(TF = sub("_.*", "", TF)) %>%
+      dplyr::distinct()
+  })
+
+  return(genesMotif_Cell)
+
+
 }
 
 
-extract_motifs_ArchR(GRANetObject=granetobj, ArchRProjectObj=archrproj)
+x <- extract_motifs_ArchR(GRANetObject=granetobj, ArchRProjectObj=archrproj, cssClusterArchR="tissue", threads=8)
 
 
-#------------------------------------------------------------------------------#
-#                 Find genes with a motif in its promoter.                     #
-#------------------------------------------------------------------------------#
-# Find peaks between 5k of tss
-# To identify genes that are cis regulated by the TF
-# And later remove genes that are downstream target of the TF
 
-# Split peaks into peaks found by Cell type
-# This way cell type-specific regulos will be buils
-
-
-# Load peaks for each cell type
-peaksGr <- ArchR::getPeakSet(archrproj)
-unique(names(peaksGr))
-
-# Get peaks matrix
-ArchR::getAvailableMatrices(archrproj)
-peakMatrix <- ArchR::getMatrixFromProject(archrproj, useMatrix = "PeakMatrix")
-peakMatrix <- assay(peakMatrix)
-dim(peakMatrix)
-length(peaksGr)
-
-# Get peaks by cell type
-#cellWithPeak <- 0.01
-table(archrproj$predictedGroup)
-cellTypes <- sort(unique(archrproj$predictedGroup))
-names(cellTypes) <- cellTypes
-peaksGr_CellTypes <- lapply(cellTypes, function(cellType){
+lapply(sort(unique(archrproj@cellColData[, "tissue"])), function(cellType){
   # Keep peak if at least one insertion in x% of cells from group
-  peakMatrixCellType <- peakMatrix[,archrproj$predictedGroup == cellType]
-  percentCells         <- ncol(peakMatrixCellType)*cellWithPeak
+  idx <- which(archrproj@cellColData[, "tissue"] == cellType)
+  peakMatrixCellType <- x[,idx]
+  percentCells       <- ncol(peakMatrixCellType)*cellsWithPeak
   nCellWithPeak      <- rowSums(peakMatrixCellType > 0)
   peaksGr[nCellWithPeak > percentCells]
 })
 
-# Create list of motif position by cell type
-motifPositions_Cell <- lapply(peaksGr_CellTypes, function(peaksGr_Cell){
-  endoapply(motifPositions, subsetByOverlaps, peaksGr_Cell)
-})
-#motifPositions_Cell
-sapply(motifPositions_Cell, function(x){
-  summary(sapply(x, length))
-})
 
 
+x[1:5,1:5]
 
-# Find genes with motif in promoter
-promoters <- trim(tssGr+promoter_size)
-#motifPositions_Cell$Ciliated
-
-genesMotif_Cell <- lapply(motifPositions_Cell, function(motifPositions_Cellgl){
-  genesMotif_l <- mclapply(setNames(names(motifPositions_Cellgl), names(motifPositions_Cellgl)), function(TF){
-    genesWithMotif <- subsetByOverlaps(promoters, motifPositions_Cellgl[[TF]])
-    tibble(TF = TF, target = genesWithMotif$symbol)
-    #}, mc.cores = 1)
-  }, mc.cores = Ncores)
-
-  #print(genesMotif_l)
-  bind_rows(genesMotif_l) %>%
-    dplyr::mutate(TF = sub("_.*", "", TF)) %>%
-    dplyr::distinct()
-})
-
-genesMotif_Cell
-sapply(genesMotif_Cell, nrow)
 #------------------------------------------------------------------------------#
 #             Filter co-expression modules to make regulons                    #
 #------------------------------------------------------------------------------#
