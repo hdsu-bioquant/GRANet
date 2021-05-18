@@ -16,6 +16,7 @@ from arboreto.core import SGBM_KWARGS, RF_KWARGS, EARLY_STOP_WINDOW_LENGTH
 from arboreto.core import to_tf_matrix, target_gene_indices, infer_partial_network
 
 from pyscenic.cli.utils import load_exp_matrix, suffixes_to_separator
+from pyscenic.utils import add_correlation
 from pathlib import PurePath
 
 
@@ -77,6 +78,9 @@ def coexpression_modules(method, expression_mtx_fname, tf_names, num_workers,
 
     ex_matrix, gene_names, tf_names = _prepare_input(ex_matrix, gene_names, tf_names)
     tf_matrix, tf_matrix_gene_names = to_tf_matrix(ex_matrix, gene_names, tf_names)
+    
+    #print('genes', ex_matrix.shape, gene_names)
+    #print('TFs', tf_matrix.shape, tf_matrix_gene_names)
 
     print(f'starting {method} using {num_workers} processes...', file=sys.stdout)
     start_time = time.time()
@@ -93,8 +97,36 @@ def coexpression_modules(method, expression_mtx_fname, tf_names, num_workers,
 
     end_time = time.time()
     print(f'Done in {end_time - start_time} seconds.', file=sys.stdout)
-
     
     return adj
+    
+    
+
+
+
+def correlations_to_modules(expression_mtx_fname, adj, mask_dropouts=False, transpose='yes', sparse=False, 
+    cell_id_attribute='CellID', gene_attribute='Gene', seed=None):
+        
+    
+    start_time = time.time()
+    ex_matrix = load_exp_matrix(
+        expression_mtx_fname, (transpose == 'yes'), sparse, cell_id_attribute, gene_attribute
+    )
+    
+    end_time = time.time()
+    print(
+        f'Loaded expression matrix in {end_time - start_time} seconds...',
+        file=sys.stdout,
+    )
+    
+    start_time = time.time()
+    adjacencies_wCor = add_correlation(adj, ex_matrix, rho_threshold=0.03, mask_dropouts=mask_dropouts)
+    end_time = time.time()
+    print(
+        f'Computed correlations in {end_time - start_time} seconds...',
+        file=sys.stdout,
+    )
+
+    return adjacencies_wCor
     
     
