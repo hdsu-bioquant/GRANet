@@ -157,9 +157,60 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
 }
 
 
+
+
+#' Title
+#'
+#' @param GRANetObject
+#' @param threads
+#'
+#' @return
+#' @export
+#'
+#' @examples
+add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=FALSE){
+  if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
+    stop("Loom file with counts not found. Did you move the output directory from
+         its original location? You can reset it with the function
+         set_GRANet_output_directory")
+  }
+  if(ncol(GRANetObject@Coexprs_modules) == 0){
+    stop("No co-expression modules found. Compute them with the function compute_coexpression_modules")
+  }
+
+  if(all(c("TF", "target", "importance", "regulation", "rho") %in% colnames(GRANetObject@Coexprs_modules))){
+    stop("Correlation already added to co-expression modules")
+  }
+
+
+  pathLoom <- GRANetObject@ProjectMetadata$pathLoom
+
+  #------------------------------------#
+  #   Import correlation function      #
+  #------------------------------------#
+  path <- system.file(package = "GRANet")
+  reticulatedBoost <- reticulate::import_from_path("reticulatedBoost", path = path)
+  correlations_to_modules <- reticulatedBoost$arboreto_functionalized$correlations_to_modules
+
+  #------------------------------------#
+  #   Compute coexpression modules     #
+  #------------------------------------#
+  message("Adding correlation to co-expression modules...")
+  cmods <- correlations_to_modules(
+    expression_mtx_fname = pathLoom,
+    adj                  = GRANetObject@Coexprs_modules,
+    mask_dropouts        = mask_dropouts)
+  GRANetObject@Coexprs_modules <- cmods
+
+  return(GRANetObject)
+}
+
+# granetobj <- compute_coexpression_modules(GRANetObject = granetobj, TFs = head(readLines("data/mm_mgi_tfs.txt")), threads = 8)
+# add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
+
 #environment(compute_coexpression_modules) <- asNamespace('GRANet')
 #compute_coexpression_modules(GRANetObject = granetobj, TFs = readLines("data/mm_mgi_tfs.txt"))
-compute_coexpression_modules(GRANetObject = granetobj, TFs = head(readLines("data/mm_mgi_tfs.txt")), threads = 8)
+#compute_coexpression_modules(GRANetObject = granetobj, TFs = head(readLines("data/mm_mgi_tfs.txt")), threads = 8)
 #
 # "GRANetProject/Coexprs_modules/mm_mgi_tfs.txt"
 #
