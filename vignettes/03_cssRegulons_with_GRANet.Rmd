@@ -1,0 +1,104 @@
+---
+title: "cssRegulons"
+author: "HDSU"
+date: "19.05.2021"
+vignette: >
+  %\VignetteIndexEntry{cssRegulons}
+  %\VignetteEncoding{UTF-8}  
+  %\VignetteEngine{knitr::rmarkdown}
+output:
+  BiocStyle::html_document:
+    toc: yes
+  #md_document:
+  #  variant: markdown_github
+editor_options: 
+  chunk_output_type: console
+---
+
+  
+```{r load_style, warning=FALSE, message=FALSE, results="hide"}
+library(BiocStyle)
+library(Seurat)
+library(SCopeLoomR)
+library(dplyr)
+library(ArchR)
+library(AUCell)
+library(GRANet)
+
+```
+
+Using the raw scRNA-seq counts and the pre-processed scATAC-seq, GRANet finds the cell state-specific regulons (cssRegulons) and computes the activity of these regulons across all cells from the scRNA-seq dataset.
+
+This Vignette shows how to use GRANet to perform the data integration.
+
+# Example: Mouse atlas 8 tissues cssRegulons
+
+## Read scRNA-seq and scATAC-seq data
+
+```{r}
+seuratobj <- readRDS("data/mouse_scrna_1K.RDS")
+archrproj <- loadArchRProject(path = "data/ArchR02_MotifMatch/")
+
+```
+
+## Activate conda environment 
+
+GRANet uses several python packages, the easiest way to install them and make them available for GRANet is using conda (see vignette _01_create_condaenv_).
+
+```{r}
+reticulate::use_condaenv("granet")
+```
+
+## Create GRANet object
+
+```{r}
+granetobj <- CreateGRAnetObject(SeuratObject = seuratobj, cssCluster = "tissue", 
+                                genome = 'mm9',
+                                Force=TRUE )
+
+```
+
+
+## GRANet step 1: Compute co-expression modules
+
+```{r}
+granetobj <- compute_coexpression_modules(GRANetObject = granetobj, 
+                                          #TFs = head(readLines("data/mm_mgi_tfs.txt")), 
+                                          TFs = readLines("data/mm_mgi_tfs.txt"), 
+                                          threads = 8)
+granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
+
+```
+
+
+## GRANet step 2: Add motif postion in chromatin accessible regions for all cell types
+
+```{r}
+granetobj <- add_motifs_position_from_ArchR(GRANetObject=granetobj, 
+                                            ArchRProjectObj=archrproj, 
+                                            cssClusterArchR="tissue", 
+                                            threads=8)
+```
+
+
+## GRANet step 3: Find cssRegulons 
+
+```{r}
+granetobj <- make_cssRegulons(GRANetObject = granetobj, 
+                              promoter_size = 50000, 
+                              min_regulon_size=20)
+
+```
+
+## GRANet step 4: Compute cssRegulon activity
+
+```{r}
+granetobj <- cssRegulons_activity(GRANetObject=granetobj, 
+                                  aucMaxRank="50%", threads=1)
+
+saveRDS(granetobj, "GRANetProject/granetobj.RDS")
+
+```
+
+
+
