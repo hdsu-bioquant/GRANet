@@ -81,6 +81,17 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
 }
 #environment(add_motifs_position_from_ArchR) <- asNamespace('GRANet')
 
+#' Title
+#'
+#' @param GRANetObject
+#' @param promoter_size
+#' @param min_regulon_size
+#' @param threads
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_cssRegulons <- function(GRANetObject, promoter_size=5000, min_regulon_size=20, threads=1){
 
   genome <- GRANetObject@ProjectMetadata$Genome
@@ -133,14 +144,9 @@ make_cssRegulons <- function(GRANetObject, promoter_size=5000, min_regulon_size=
       dplyr::distinct()
   })
 
-  #return(genesMotif_Cell)
-
-  #---------------------------------------------------#
-  # Filter TFs that have no motif in the ATACseq data #
-  #---------------------------------------------------#
-  #------------------------------------------------------------------------------#
-  #             Filter co-expression modules to make regulons                    #
-  #------------------------------------------------------------------------------#
+  #-----------------------------------------------#
+  # Filter co-expression modules to make regulons #
+  #--------------------------------------------- -#
   # Trim out genes that are not a cis target of the TF
 
   regulons_df_Cell <- lapply(genesMotif_Cell, function(genesMotif){
