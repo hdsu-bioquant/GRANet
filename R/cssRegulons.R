@@ -1,47 +1,24 @@
 # Make sure that TF names are the same used in ArchR
-granetobj
+# PeakMatrix
+# getPositions
+# getPeakSet
 
 
-PeakMatrix
-getPositions
-getPeakSet
-
-library(dplyr)
-
-archrproj@cellColData[, "tissue"]
-
-# cellWithPeak minimum percentage of cells in a cluster, that are required to have at least one insertion in a peak to keep it
-
+#' Title
+#'
+#' @param GRANetObject
+#' @param ArchRProjectObj
+#' @param cssClusterArchR
+#' @param promoter_size
+#' @param cellsWithPeak Minimum percentage of cells in a cluster, that are
+#' required to have at least one insertion in a peak to keep it
+#' @param threads
+#'
+#' @return
+#' @export
+#'
+#' @examples
 add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
-  genome <- GRANetObject@ProjectMetadata$Genome
-
-  #----------------------------------------------#
-  # Find genes part of the co-expression modules #
-  #----------------------------------------------#
-  message("Extracting genomic location genes in co-expression modules...")
-  if (genome == "hg19") {
-    library(EnsDb.Hsapiens.v75)
-    genesGr <- genes(EnsDb.Hsapiens.v75)
-  } else if (genome == "hg38") {
-    library(EnsDb.Hsapiens.v86)
-    genesGr <- genes(EnsDb.Hsapiens.v86)
-  } else if (genome == "mm9") {
-    library(EnsDb.Mmusculus.v75)
-    genesGr <- genes(EnsDb.Mmusculus.v75)
-  } else if (genome == "mm10") {
-    library(EnsDb.Mmusculus.v79)
-    genesGr <- genes(EnsDb.Mmusculus.v79)
-  }
-  seqlevelsStyle(genesGr) <- 'UCSC'
-
-  # Find genes in co-expression modules
-  genesGr <- genesGr[genesGr$symbol %in% unique(GRANetObject@Coexprs_modules$target)]
-
-  # get TSS
-  tssGr <- resize(genesGr, width = 1, fix = "start")
-  #seqlevelsStyle(tssGr) <- 'UCSC'
-  tssGr
-
 
   #---------------------------------------------------#
   # Filter TFs that have no motif in the ATACseq data #
@@ -81,8 +58,6 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
   peakMatrix <- ArchR::getMatrixFromProject(ArchRProjectObj, useMatrix = "PeakMatrix", logFile=NULL)
   peakMatrix <- SummarizedExperiment::assay(peakMatrix)
 
-  #return(peakMatrix)
-
   # Get peaks by cell type
   cellTypes <- sort(unique(ArchRProjectObj@cellColData[, cssClusterArchR]))
   names(cellTypes) <- cellTypes
@@ -110,12 +85,39 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
 
 }
 
-granetobj <- add_motifs_position_from_ArchR(GRANetObject=granetobj, ArchRProjectObj=archrproj, cssClusterArchR="tissue", threads=8)
 
+make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.01, threads=1){
 
-
-make_cssRegulons <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
   genome <- GRANetObject@ProjectMetadata$Genome
+
+  #----------------------------------------------#
+  # Find genes part of the co-expression modules #
+  #----------------------------------------------#
+  message("Extracting genomic location genes in co-expression modules...")
+  if (genome == "hg19") {
+    library(EnsDb.Hsapiens.v75)
+    genesGr <- genes(EnsDb.Hsapiens.v75)
+  } else if (genome == "hg38") {
+    library(EnsDb.Hsapiens.v86)
+    genesGr <- genes(EnsDb.Hsapiens.v86)
+  } else if (genome == "mm9") {
+    library(EnsDb.Mmusculus.v75)
+    genesGr <- genes(EnsDb.Mmusculus.v75)
+  } else if (genome == "mm10") {
+    library(EnsDb.Mmusculus.v79)
+    genesGr <- genes(EnsDb.Mmusculus.v79)
+  }
+  seqlevelsStyle(genesGr) <- 'UCSC'
+
+  # Find genes in co-expression modules
+  genesGr <- genesGr[genesGr$symbol %in% unique(GRANetObject@Coexprs_modules$target)]
+
+  # get TSS
+  tssGr <- resize(genesGr, width = 1, fix = "start")
+
+  # Find genes with motif in promoter
+  promoters <- trim(tssGr+promoter_size)
+
 
   #----------------------------------------------#
   # Find genes part of the co-expression modules #
@@ -127,12 +129,7 @@ make_cssRegulons <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, pro
   #---------------------------------------------------#
 
 
-  return(motifPositions_Cell)
-
-  # Find genes with motif in promoter
-  promoters <- trim(tssGr+promoter_size)
-
-  genesMotif_Cell <- lapply(motifPositions_Cell, function(motifPositions_Cellgl){
+  genesMotif_Cell <- lapply(GRANetObject@TFmotif_location, function(motifPositions_Cellgl){
     genesMotif_l <- mclapply(setNames(names(motifPositions_Cellgl), names(motifPositions_Cellgl)), function(TF){
       genesWithMotif <- subsetByOverlaps(promoters, motifPositions_Cellgl[[TF]])
       tibble(TF = TF, target = genesWithMotif$symbol)

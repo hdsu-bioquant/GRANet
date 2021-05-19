@@ -33,6 +33,7 @@ GRANet <- setClass(
 CreateGRAnetObject <- function(
   SeuratObject,
   cssCluster,
+  genome,
   outputDirectory = "GRANetProject",
   Force=FALSE,
   threads
@@ -84,8 +85,9 @@ CreateGRAnetObject <- function(
   GRANetObject <- new(
     Class = 'GRANet',
     SeuratObject = SeuratObject,
-    ProjectMetadata = list(outputDirectory=outputDirectory,
-                           pathLoom = p_loomOut)
+    ProjectMetadata = list(outputDirectory = outputDirectory,
+                           pathLoom        = p_loomOut,
+                           Genome          = genome)
   )
 
   return(GRANetObject)
