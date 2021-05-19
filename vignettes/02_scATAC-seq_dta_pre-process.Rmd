@@ -1,0 +1,220 @@
+---
+title: "scATAC-seq pre-processing"
+author: "HDSU"
+date: "19.05.2021"
+vignette: >
+  %\VignetteIndexEntry{scATAC-seq pre-processing}
+  %\VignetteEncoding{UTF-8}  
+  %\VignetteEngine{knitr::rmarkdown}
+output:
+  BiocStyle::html_document:
+    toc: yes
+  #md_document:
+  #  variant: markdown_github
+editor_options: 
+  chunk_output_type: console
+---
+
+  
+```{r load_style, warning=FALSE, message=FALSE, results="hide"}
+library(BiocStyle)
+library(Seurat)
+library(dplyr)
+library(ArchR)
+```
+
+To compute the cell state-specific regulons (cssRegulons) the scATAC-seq must be processed beforehand to compute the location of TF motifs binding to open chromatin regions for each cell type. This set should be stored as a list of GRangesList:
+  - Every element of the list is one of the cell types
+  - For every cell type a GRangesList should be created with the location of binding motifs for all TFs.
+
+GRAnet includes functions to extract the set of TF motifs locations binding to open chromatin regions from an **ArchRProject**. This Vignette shows the steps required to process the scATAC-seq data with ArchR.
+
+# Example: Mouse atlas 8 tissues
+
+## Create ArchR project
+
+List of Arrow files and general settings:
+
+```{r}
+ArrowFiles  <- c("data/scatac/WholeBrainA_62216_barcoded.bam.arrow",
+                 "data/scatac/Lung2_62216_barcoded.bam.arrow",
+                 "data/scatac/Kidney_62016_barcoded.bam.arrow",
+                 "data/scatac/BoneMarrow_62016_barcoded.bam.arrow",
+                 "data/scatac/Liver_62016_barcoded.bam.arrow",
+                 "data/scatac/Thymus_62016_barcoded.bam.arrow",
+                 "data/scatac/Spleen_62016_barcoded.bam.arrow",
+                 "data/scatac/SmallIntestine_62816_barcoded.bam.arrow")
+
+ArchR::addArchRThreads(20)
+addArchRGenome("mm9")
+p_archrproj <- "data/scatac/archr/ArchRProject_/"
+
+```
+
+
+```{r}
+#------------------------------------------------------------------------------#
+#                                Create ArchR                                  #
+#------------------------------------------------------------------------------#
+
+# Creat ArchRProject
+archrproj <- ArchRProject(
+  ArrowFiles = ArrowFiles,
+  outputDirectory = p_archrproj,
+  copyArrows = TRUE 
+)
+
+archrproj
+getAvailableMatrices(archrproj)
+
+
+
+```
+
+## Filter low quality cells
+
+```{r}
+#------------------------------------------------------------------------------#
+#                      Filter low quality cells                                #
+#------------------------------------------------------------------------------#
+
+archrproj2 <- archrproj[log10(archrproj$nFrags) > 3.0, ]
+hist(log10(archrproj$nFrags))
+hist(log10(archrproj2$nFrags))
+
+
+archrproj2 <- my_filterDoublets(archrproj2)
+archrproj2
+
+```
+
+
+## Dimension reduction and clustering
+
+```{r}
+#------------------------------------------------------------------------------#
+#                                  LSI                                         #
+#------------------------------------------------------------------------------#
+
+# Iterative Latent Semantic Indexing (LSI)
+archrproj2 <- addIterativeLSI(
+  ArchRProj = archrproj2,
+  useMatrix = "TileMatrix",
+  name = "IterativeLSI",
+  iterations = 2,
+  clusterParams = list( #See Seurat::FindClusters
+    resolution = c(5),
+    sampleCells = 10000,
+    maxClusters = 20,
+    n.start = 10
+  ),
+  varFeatures = 25000,
+  dimsToUse = 1:30,
+  UMAPParams = list(n_neighbors = 120, min_dist = 0.25)
+)
+
+
+# Clustering using Seurat’s FindClusters() function
+archrproj2 <- addClusters(
+  input = archrproj2,
+  reducedDims = "IterativeLSI",
+  method = "Seurat",
+  name = "Clusters",
+  resolution = 0.8
+)
+
+
+cM <- confusionMatrix(paste0(archrproj2$Clusters), paste0(archrproj2$Sample))
+
+cM <- as.matrix(cM / Matrix::rowSums(cM))
+p <- Heatmap(matrix = as.matrix(cM),
+             col = viridis(100))
+p
+
+#------------------------------------------------------------------------------#
+#                                  UMAP                                        #
+#------------------------------------------------------------------------------#
+# 6.1 Uniform Manifold Approximation and Projection (UMAP)
+archrproj2 <- addUMAP(
+  ArchRProj = archrproj2,
+  reducedDims = "IterativeLSI",
+  name = "UMAP",
+  nNeighbors = 80,
+  minDist = 0.25,
+  metric = "cosine"
+)
+
+p1 <- plotEmbedding(ArchRProj = archrproj2, colorBy = "cellColData", name = "Sample", embedding = "UMAP")
+p2 <- plotEmbedding(ArchRProj = archrproj2, colorBy = "cellColData", name = "Clusters", embedding = "UMAP")
+
+#------------------------------------------------------------------------------#
+#                              Add tissue identity                             #
+#------------------------------------------------------------------------------#
+archrproj2$tissue <- paste0("Adult", gsub("_.*|Whole|2|A", "", archrproj2$Sample))
+p3 <- plotEmbedding(archrproj2, colorBy = "cellColData", name = "tissue")
+
+p1 + p2 + p3
+
+```
+
+Tissue distribution across clusters 
+
+```{r}
+h <- Heatmap(as.matrix(cM), col=magma(100), name="Confusion Matrix\nCluster vs Tissue")
+h
+
+```
+
+
+
+##  Peak calling for each tissue
+
+```{r}
+#------------------------------------------------------------------------------#
+#                   Pseudo-bulk Replicates in ArchR                            #
+#------------------------------------------------------------------------------#
+archrproj3 <- addGroupCoverages(ArchRProj = archrproj2, groupBy = "tissue")
+
+#------------------------------------------------------------------------------#
+#                         Calling Peaks with ArchR                             #
+#------------------------------------------------------------------------------#
+pathToMacs2 <- findMacs2()
+
+archrproj3 <- addReproduciblePeakSet(
+  ArchRProj = archrproj3,
+  groupBy = "tissue",
+  pathToMacs2 = pathToMacs2
+)
+
+archrproj3 <- addPeakMatrix(archrproj3)
+
+```
+
+## Motif binding location from cisbp database
+
+```{r}
+#------------------------------------------------------------------------------#
+#                               Motif location                                 #
+#------------------------------------------------------------------------------#
+archrproj3 <- addMotifAnnotations(ArchRProj = archrproj3, motifSet = "cisbp", name = "Motif", force=TRUE)
+getPositions(archrproj3)
+
+
+```
+
+## Save ArchR project
+
+```{r}
+
+saveArchRProject(ArchRProj = archrproj3,
+                 outputDirectory = p_archrproj,
+                 load = FALSE)
+
+
+```
+
+
+
+
+
+
