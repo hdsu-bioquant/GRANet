@@ -1,6 +1,6 @@
 # Make sure that TF names are the same used in ArchR
 granetobj
-granetobj@ProjectMetadata$Genome <- "mm9"
+
 
 PeakMatrix
 getPositions
@@ -12,7 +12,7 @@ archrproj@cellColData[, "tissue"]
 
 # cellWithPeak minimum percentage of cells in a cluster, that are required to have at least one insertion in a peak to keep it
 
-extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
+add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
   genome <- GRANetObject@ProjectMetadata$Genome
 
   #----------------------------------------------#
@@ -103,6 +103,32 @@ extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR,
     endoapply(motifPositions, subsetByOverlaps, peaksGr_Cell)
   }, mc.cores = threads)
 
+  # Add motif position to slot
+  GRANetObject@TFmotif_location <- motifPositions_Cell
+  return(GRANetObject)
+
+
+}
+
+granetobj <- add_motifs_position_from_ArchR(GRANetObject=granetobj, ArchRProjectObj=archrproj, cssClusterArchR="tissue", threads=8)
+
+
+
+make_cssRegulons <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
+  genome <- GRANetObject@ProjectMetadata$Genome
+
+  #----------------------------------------------#
+  # Find genes part of the co-expression modules #
+  #----------------------------------------------#
+
+
+  #---------------------------------------------------#
+  # Filter TFs that have no motif in the ATACseq data #
+  #---------------------------------------------------#
+
+
+  return(motifPositions_Cell)
+
   # Find genes with motif in promoter
   promoters <- trim(tssGr+promoter_size)
 
@@ -112,7 +138,6 @@ extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR,
       tibble(TF = TF, target = genesWithMotif$symbol)
     }, mc.cores = threads)
 
-    #print(genesMotif_l)
     bind_rows(genesMotif_l) %>%
       dplyr::mutate(TF = sub("_.*", "", TF)) %>%
       dplyr::distinct()
@@ -120,39 +145,29 @@ extract_motifs_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR,
 
   return(genesMotif_Cell)
 
+  #---------------------------------------------------#
+  # Filter TFs that have no motif in the ATACseq data #
+  #---------------------------------------------------#
+  #------------------------------------------------------------------------------#
+  #             Filter co-expression modules to make regulons                    #
+  #------------------------------------------------------------------------------#
+  # Trim out genes that are not a cis target of the TF
+
+  regulons_df_Cell <- lapply(genesMotif_Cell, function(genesMotif){
+    inner_join(genesMotif, scenic_corrmodules, by=c("TF", "target")) %>%
+      dplyr::group_by(TF, regulation) %>%
+      dplyr::filter(n() >= min_regulon_size)
+  })
+  regulons_df_Cell
+  lapply(regulons_df_Cell, function(x) length(unique(x$TF)))
+
+  saveRDS(regulons_df_Cell, file = p_regulons)
+
+
 
 }
 
 
-x <- extract_motifs_ArchR(GRANetObject=granetobj, ArchRProjectObj=archrproj, cssClusterArchR="tissue", threads=8)
 
 
-
-lapply(sort(unique(archrproj@cellColData[, "tissue"])), function(cellType){
-  # Keep peak if at least one insertion in x% of cells from group
-  idx <- which(archrproj@cellColData[, "tissue"] == cellType)
-  peakMatrixCellType <- x[,idx]
-  percentCells       <- ncol(peakMatrixCellType)*cellsWithPeak
-  nCellWithPeak      <- rowSums(peakMatrixCellType > 0)
-  peaksGr[nCellWithPeak > percentCells]
-})
-
-
-
-x[1:5,1:5]
-
-#------------------------------------------------------------------------------#
-#             Filter co-expression modules to make regulons                    #
-#------------------------------------------------------------------------------#
-# Trim out genes that are not a cis target of the TF
-
-regulons_df_Cell <- lapply(genesMotif_Cell, function(genesMotif){
-  inner_join(genesMotif, scenic_corrmodules, by=c("TF", "target")) %>%
-    dplyr::group_by(TF, regulation) %>%
-    dplyr::filter(n() >= min_regulon_size)
-})
-regulons_df_Cell
-lapply(regulons_df_Cell, function(x) length(unique(x$TF)))
-
-saveRDS(regulons_df_Cell, file = p_regulons)
 
