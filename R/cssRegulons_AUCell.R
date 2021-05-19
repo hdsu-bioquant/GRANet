@@ -1,5 +1,15 @@
 
-cssRegulons_activity <- function(GRANetObject, threads=1){
+#' Title
+#'
+#' @param GRANetObject
+#' @param aucMaxRank possible values: min, 1%, 5%, 10%, 50%, 100%
+#' @param threads
+#'
+#' @return
+#' @export
+#'
+#' @examples
+cssRegulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
 
   #------------------------------------#
   # Make rankings from gene expression #
@@ -38,8 +48,8 @@ cssRegulons_activity <- function(GRANetObject, threads=1){
 
     CellIDs <- colnames(GRANetObject@SeuratObject)[GRANetObject@SeuratObject$cssCluster %in% CellType]
 
-    AUCell_calcAUC(regulons_list_Cell[[CellType]], aucellRankings[,CellIDs],
-                   aucMaxRank = aucellRankings@nGenesDetected["1%"],
+    AUCell::AUCell_calcAUC(regulons_list_Cell[[CellType]], aucellRankings[,CellIDs],
+                   aucMaxRank = aucellRankings@nGenesDetected[aucMaxRank],
                    nCores     = threads)
   })
 
@@ -57,14 +67,16 @@ cssRegulons_activity <- function(GRANetObject, threads=1){
   regulonAUC <- as.matrix(regulonAUC)
   regulonAUC <- regulonAUC[rowSums(regulonAUC) > 0,]
 
-  return(regulonAUC)
+  # Add cssRegulons AUCell to slot
+  GRANetObject@cssRegulonsAUCell <- regulonAUC
 
-
-
-
+  return(GRANetObject)
 
 }
-#cssRegulons_activity(GRANetObject=granetobj, threads=1)
+#environment(cssRegulons_activity) <- asNamespace('GRANet')
+#x <- cssRegulons_activity(GRANetObject=granetobj, aucMaxRank="50%", threads=1)
+
+
 
 # rlang
 # purrr

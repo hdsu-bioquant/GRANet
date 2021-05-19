@@ -3,12 +3,14 @@
 
 #' Title
 #'
-#' @slot GeneExpression list.
-#' @slot ArchR list.
+#' @slot SeuratObject Seurat.
+#' @slot cssCluster character.
+#' @slot ProjectMetadata list.
 #' @slot TFmotif_location list.
 #' @slot Coexprs_modules data.frame.
 #' @slot cssRegulons list.
-#' @slot SignFeatures data.frame.
+#' @slot cssRegulonsAUCell matrix.
+#' @slot  .
 #'
 #' @return
 #' @export
@@ -16,13 +18,13 @@
 #' @examples
 GRANet <- setClass(
   Class = "GRANet",
-  slots = list(GeneExpression   = "list",
-               SeuratObject     = "Seurat",
-               cssCluster       = "character",
-               ProjectMetadata  = "list",
-               TFmotif_location = "list",
-               Coexprs_modules  = "data.frame",
-               cssRegulons      = "list")
+  slots = list(SeuratObject      = "Seurat",
+               cssCluster        = "character",
+               ProjectMetadata   = "list",
+               TFmotif_location  = "list",
+               Coexprs_modules   = "data.frame",
+               cssRegulons       = "list",
+               cssRegulonsAUCell = "matrix")
 
 )
 
