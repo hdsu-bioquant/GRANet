@@ -32,11 +32,6 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
     dplyr::filter(!is.na(TF)) %>%
     dplyr::distinct()
 
-
-  # Remove modules where the TF was not found in the scATAC-seq data
-  Coexprs_modules <- GRANetObject@Coexprs_modules %>%
-    dplyr::filter(TF %in% coexprsModulesTFs$TF)
-
   # Remove motifs for TF not found
   motifPositions <- motifPositions[names(motifPositions) %in% coexprsModulesTFs$motif_archr]
 
@@ -78,13 +73,15 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
 
   # Add motif position to slot
   GRANetObject@TFmotif_location <- motifPositions_Cell
+  GRANetObject@ProjectMetadata$coexprsModulesTFs <- coexprsModulesTFs
+
   return(GRANetObject)
 
 
 }
 #environment(add_motifs_position_from_ArchR) <- asNamespace('GRANet')
 
-make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.01, threads=1){
+make_cssRegulons <- function(GRANetObject, promoter_size=5000, min_regulon_size=20, threads=1){
 
   genome <- GRANetObject@ProjectMetadata$Genome
 
@@ -107,25 +104,23 @@ make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.0
   }
   seqlevelsStyle(genesGr) <- 'UCSC'
 
+  # Remove modules where the TF was not found in the scATAC-seq data
+  Coexprs_modules <- GRANetObject@Coexprs_modules %>%
+    dplyr::filter(TF %in% GRANetObject@ProjectMetadata$coexprsModulesTFs$TF)
+
   # Find genes in co-expression modules
-  genesGr <- genesGr[genesGr$symbol %in% unique(GRANetObject@Coexprs_modules$target)]
+  genesGr <- genesGr[genesGr$symbol %in% unique(Coexprs_modules$target)]
 
   # get TSS
   tssGr <- resize(genesGr, width = 1, fix = "start")
 
   # Find genes with motif in promoter
-  promoters <- trim(tssGr+promoter_size)
-
-
-  #----------------------------------------------#
-  # Find genes part of the co-expression modules #
-  #----------------------------------------------#
+  promoters <- trim(suppressWarnings(tssGr+promoter_size))
 
 
   #---------------------------------------------------#
   # Filter TFs that have no motif in the ATACseq data #
   #---------------------------------------------------#
-
 
   genesMotif_Cell <- lapply(GRANetObject@TFmotif_location, function(motifPositions_Cellgl){
     genesMotif_l <- mclapply(setNames(names(motifPositions_Cellgl), names(motifPositions_Cellgl)), function(TF){
@@ -138,7 +133,7 @@ make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.0
       dplyr::distinct()
   })
 
-  return(genesMotif_Cell)
+  #return(genesMotif_Cell)
 
   #---------------------------------------------------#
   # Filter TFs that have no motif in the ATACseq data #
@@ -149,20 +144,19 @@ make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.0
   # Trim out genes that are not a cis target of the TF
 
   regulons_df_Cell <- lapply(genesMotif_Cell, function(genesMotif){
-    inner_join(genesMotif, scenic_corrmodules, by=c("TF", "target")) %>%
+    inner_join(genesMotif, Coexprs_modules, by=c("TF", "target")) %>%
       dplyr::group_by(TF, regulation) %>%
       dplyr::filter(n() >= min_regulon_size)
   })
-  regulons_df_Cell
-  lapply(regulons_df_Cell, function(x) length(unique(x$TF)))
 
-  saveRDS(regulons_df_Cell, file = p_regulons)
+  # Add cssRegulons to slot
+  GRANetObject@cssRegulons <- regulons_df_Cell
 
-
+  return(GRANetObject)
 
 }
-environment(add_motifs_position_from_ArchR) <- asNamespace('GRANet')
-
-
+#environment(make_cssRegulons) <- asNamespace('GRANet')
+#make_cssRegulons(GRANetObject = granetobj, promoter_size = 5000, min_regulon_size=20)
+#lapply(regulons_df_Cell, function(x) length(unique(x$TF)))
 
 

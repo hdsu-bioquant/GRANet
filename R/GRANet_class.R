@@ -20,11 +20,9 @@ GRANet <- setClass(
                SeuratObject     = "Seurat",
                cssCluster       = "character",
                ProjectMetadata  = "list",
-               ArchR            = "list",
                TFmotif_location = "list",
                Coexprs_modules  = "data.frame",
-               cssRegulons      = "list",
-               SignFeatures = "data.frame" )
+               cssRegulons      = "list")
 
 )
 
