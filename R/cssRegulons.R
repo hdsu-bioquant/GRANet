@@ -63,14 +63,12 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
   names(cellTypes) <- cellTypes
   peaksGr_CellTypes <- lapply(cellTypes, function(cellType){
     # Keep peak if at least one insertion in x% of cells from group
-    idx <- which(ArchRProjectObj@cellColData[, cssClusterArchR] == cellType)
+    idx <- BiocGenerics::which(ArchRProjectObj@cellColData[, cssClusterArchR] == cellType)
     peakMatrixCellType <- peakMatrix[,idx]
     percentCells       <- ncol(peakMatrixCellType)*cellsWithPeak
-    nCellWithPeak      <- rowSums(peakMatrixCellType > 0)
+    nCellWithPeak      <- Matrix::rowSums(peakMatrixCellType > 0)
     peaksGr[nCellWithPeak > percentCells]
   })
-
-  peaksGr_CellTypes
 
   message("Computing list of motifs position by cell type...")
   # Create list of motif position by cell type
@@ -84,7 +82,7 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
 
 
 }
-
+#environment(add_motifs_position_from_ArchR) <- asNamespace('GRANet')
 
 make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.01, threads=1){
 
@@ -163,7 +161,7 @@ make_cssRegulons <- function(GRANetObject, promoter_size=5000, cellsWithPeak=0.0
 
 
 }
-
+environment(add_motifs_position_from_ArchR) <- asNamespace('GRANet')
 
 
 
