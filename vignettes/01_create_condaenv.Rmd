@@ -1,0 +1,75 @@
+---
+title: "Conda env"
+author: "HDSU"
+date: "19.05.2021"
+vignette: >
+  %\VignetteIndexEntry{condaenv}
+  %\VignetteEncoding{UTF-8}  
+  %\VignetteEngine{knitr::rmarkdown}
+output:
+  BiocStyle::html_document:
+    toc: yes
+  #md_document:
+  #  variant: markdown_github
+editor_options: 
+  chunk_output_type: console
+---
+
+  
+```{r load_style, warning=FALSE, message=FALSE, results="hide"}
+library(BiocStyle)
+library(Seurat)
+library(SCopeLoomR)
+library(dplyr)
+library(ArchR)
+library(AUCell)
+library(GRANet)
+
+```
+
+
+# Conda environment for GRANet
+
+GRANet uses several python packages, the easiest way to install them and make them available for GRANet is using conda, this Vignette shows how to use Reticulate to create a conda environment with all the required packages.
+
+## Create conda environment 
+
+Create an environment with numpy and activate it:
+
+```{r}
+# Create conda environment 
+reticulate::conda_create(
+  envname = "granet",
+  packages = c("numpy"),
+  python_version = "3.7"
+)
+
+# indicate that we want to use a specific condaenv
+reticulate::use_condaenv("granet")
+
+
+
+```
+
+## Install additional packages
+
+```{r}
+
+# Install additional packages
+reticulate::conda_install(
+  envname = "granet",
+  packages = "cytoolz",
+  channel = "anaconda",
+)
+
+# Install pyscenic  with pip
+reticulate::conda_install(
+  envname = "granet",
+  packages = "pyscenic",
+  pip = TRUE
+)
+
+
+
+```
+
