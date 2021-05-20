@@ -51,8 +51,8 @@ def coexpression_modules(method, ex_matrix_r, gene_names_r, tf_names, num_worker
     ex_matrix  = ex_matrix_r.T.tocsc()
     gene_names = pd.Series(gene_names_r)
     
-    print(ex_matrix)
-    print(gene_names)
+    #print(ex_matrix)
+    #print(gene_names)
     
     if method == 'grnboost2':
         method_params = ['GBM', SGBM_KWARGS]  # regressor_type  # regressor_kwargs

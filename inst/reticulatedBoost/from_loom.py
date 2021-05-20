@@ -73,8 +73,8 @@ def coexpression_modules(method, expression_mtx_fname, tf_names, num_workers,
         file=sys.stdout,
     )
     
-    print(ex_matrix)
-    print(gene_names)
+    #print(ex_matrix)
+    #print(gene_names)
     
     #tf_names = load_tf_names(tfs_fname)
     #print(f'Loaded {len(tf_names)} TFs...', file=sys.stdout)

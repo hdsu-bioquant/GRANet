@@ -11,15 +11,15 @@
 #'
 #' @examples
 compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
-  if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
-    stop("Loom file with counts not found. Did you move the output directory from
-         its original location? You can reset it with the function
-         set_GRANet_output_directory")
-  }
-  outputDirectory <- GRANetObject@ProjectMetadata$outputDirectory
-  pathAdjacencies <- file.path(outputDirectory, "Coexprs_modules/expr_mat_adjacencies.tsv")
+  # if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
+  #   stop("Loom file with counts not found. Did you move the output directory from
+  #        its original location? You can reset it with the function
+  #        set_GRANet_output_directory")
+  # }
+  # outputDirectory <- GRANetObject@ProjectMetadata$outputDirectory
+  # pathAdjacencies <- file.path(outputDirectory, "Coexprs_modules/expr_mat_adjacencies.tsv")
 
-  pathLoom <- GRANetObject@ProjectMetadata$pathLoom
+  # pathLoom <- GRANetObject@ProjectMetadata$pathLoom
   #gnrboos2 <- arboreto_with_multiprocessing.py
 
   #pathTFs
@@ -37,11 +37,16 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
   #   Compute coexpression modules     #
   #------------------------------------#
   message("Computing Co-expression modules...")
-  cmods <- coexpression_modules(method               = "grnboost2",
-                                expression_mtx_fname = pathLoom,
-                                tf_names             = TFs,
-                                num_workers          = as.integer(threads),
-                                sparse               = TRUE)
+  cmods <- coexpression_modules(
+    method       = "grnboost2",
+    ex_matrix_r  = reticulate::r_to_py(Seurat::GetAssayData(
+      object = GRANetObject@SeuratObject,
+      slot = "counts")),
+    gene_names_r = rownames(GRANetObject@SeuratObject),
+    tf_names     = TFs,
+    num_workers  = as.integer(threads),
+    sparse       = TRUE
+  )
   GRANetObject@Coexprs_modules <- cmods
 
 
