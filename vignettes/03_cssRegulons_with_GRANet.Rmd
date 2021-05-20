@@ -71,7 +71,7 @@ granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FA
 ```
 
 
-## GRANet step 2: Add motif postion in chromatin accessible regions for all cell types
+## GRANet step 2: Add motif position in chromatin accessible regions for all cell types
 
 ```{r}
 granetobj <- add_motifs_position_from_ArchR(GRANetObject=granetobj, 

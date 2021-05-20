@@ -39,29 +39,43 @@ def run_infer_partial_network(target_gene_index):
     )
     return n
 
-def coexpression_modules(method, ex_matrix_r, gene_names_r, tf_names, num_workers,
+def coexpression_modules(method, expression_mtx_fname, tf_names, num_workers,
     transpose='yes', sparse=True, cell_id_attribute='CellID', gene_attribute='Gene', seed=None):
-    
+        
     global gene_names
     global ex_matrix
     global method_params
     global tf_matrix
     global tf_matrix_gene_names
     
-    ex_matrix  = ex_matrix_r.T.tocsc()
-    gene_names = pd.Series(gene_names_r)
-    
-    print(ex_matrix)
-    print(gene_names)
-    
     if method == 'grnboost2':
         method_params = ['GBM', SGBM_KWARGS]  # regressor_type  # regressor_kwargs
     elif method == 'genie3':
         method_params = ['RF', RF_KWARGS]  # regressor_type  # regressor_kwargs
 
-    #print(f'sparse sparse: {sparse}', file=sys.stdout)
-    #print(f'gene_names sparse: {gene_names}', file=sys.stdout)
+    start_time = time.time()
+    ex_matrix = load_exp_matrix(
+        expression_mtx_fname, (transpose == 'yes'), sparse, cell_id_attribute, gene_attribute
+    )
 
+    #print(f'sparse sparse: {sparse}', file=sys.stdout)
+    if sparse:
+        gene_names = ex_matrix[1]
+        ex_matrix = ex_matrix[0]
+        #print(f'gene_names sparse: {gene_names}', file=sys.stdout)
+    else:
+        gene_names = ex_matrix.columns
+        #print(f'gene_names: {gene_names}', file=sys.stdout)
+
+    end_time = time.time()
+    print(
+        f'Loaded expression matrix of {ex_matrix.shape[0]} cells and {ex_matrix.shape[1]} genes in {end_time - start_time} seconds...',
+        file=sys.stdout,
+    )
+    
+    print(ex_matrix)
+    print(gene_names)
+    
     #tf_names = load_tf_names(tfs_fname)
     #print(f'Loaded {len(tf_names)} TFs...', file=sys.stdout)
 
