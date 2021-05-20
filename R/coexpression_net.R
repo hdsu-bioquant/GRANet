@@ -94,7 +94,11 @@ add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=
   #------------------------------------#
   message("Adding correlation to co-expression modules...")
   cmods <- correlations_to_modules(
-    expression_mtx_fname = pathLoom,
+    ex_matrix = reticulate::r_to_py(Seurat::GetAssayData(
+      object = GRANetObject@SeuratObject,
+      slot = "counts")),
+    gene_names = rownames(GRANetObject@SeuratObject),
+    cell_names = colnames(GRANetObject@SeuratObject),
     adj                  = GRANetObject@Coexprs_modules,
     mask_dropouts        = mask_dropouts)
   GRANetObject@Coexprs_modules <- cmods

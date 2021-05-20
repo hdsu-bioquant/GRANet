@@ -93,20 +93,14 @@ def coexpression_modules(method, ex_matrix_r, gene_names_r, tf_names, num_worker
 
 
 
-def correlations_to_modules(expression_mtx_fname, adj, mask_dropouts=False, transpose='yes', sparse=False, 
+def correlations_to_modules(ex_matrix, gene_names, cell_names, adj, mask_dropouts=False, transpose='yes', sparse=False, 
     cell_id_attribute='CellID', gene_attribute='Gene', seed=None):
         
     
-    start_time = time.time()
-    ex_matrix = load_exp_matrix(
-        expression_mtx_fname, (transpose == 'yes'), sparse, cell_id_attribute, gene_attribute
-    )
-    
-    end_time = time.time()
-    print(
-        f'Loaded expression matrix in {end_time - start_time} seconds...',
-        file=sys.stdout,
-    )
+    ex_matrix = pd.DataFrame.sparse.from_spmatrix(
+        data    = ex_matrix, 
+        index   = gene_names, 
+        columns = cell_names).T
     
     start_time = time.time()
     adjacencies_wCor = add_correlation(adj, ex_matrix, rho_threshold=0.03, mask_dropouts=mask_dropouts)
