@@ -66,11 +66,6 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
 #'
 #' @examples
 add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=FALSE){
-  if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
-    stop("Loom file with counts not found. Did you move the output directory from
-         its original location? You can reset it with the function
-         set_GRANet_output_directory")
-  }
   if(ncol(GRANetObject@Coexprs_modules) == 0){
     stop("No co-expression modules found. Compute them with the function compute_coexpression_modules")
   }
@@ -79,8 +74,6 @@ add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=
     stop("Correlation already added to co-expression modules")
   }
 
-
-  pathLoom <- GRANetObject@ProjectMetadata$pathLoom
 
   #------------------------------------#
   #   Import correlation function      #
