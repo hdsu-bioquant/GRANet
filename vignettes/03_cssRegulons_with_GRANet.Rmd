@@ -52,9 +52,9 @@ reticulate::use_condaenv("granet")
 ## Create GRANet object
 
 ```{r}
-granetobj <- CreateGRAnetObject(SeuratObject = seuratobj, cssCluster = "tissue", 
-                                genome = 'mm9',
-                                Force=TRUE )
+granetobj <- CreateGRAnetObject(SeuratObject = seuratobj, 
+                                cssCluster   = "tissue", 
+                                genome       = 'mm9')
 
 ```
 
@@ -74,27 +74,28 @@ granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FA
 ## GRANet step 2: Add motif position in chromatin accessible regions for all cell types
 
 ```{r}
-granetobj <- add_motifs_position_from_ArchR(GRANetObject=granetobj, 
-                                            ArchRProjectObj=archrproj, 
-                                            cssClusterArchR="tissue", 
-                                            threads=8)
+granetobj <- add_motifs_position_from_ArchR(GRANetObject    = granetobj, 
+                                            ArchRProjectObj = archrproj, 
+                                            cssClusterArchR = "tissue", 
+                                            threads         = 8)
 ```
 
 
 ## GRANet step 3: Find cssRegulons 
 
 ```{r}
-granetobj <- make_cssRegulons(GRANetObject = granetobj, 
-                              promoter_size = 50000, 
-                              min_regulon_size=20)
+granetobj <- make_cssRegulons(GRANetObject     = granetobj, 
+                              promoter_size    = 50000, 
+                              min_regulon_size = 20)
 
 ```
 
 ## GRANet step 4: Compute cssRegulon activity
 
 ```{r}
-granetobj <- cssRegulons_activity(GRANetObject=granetobj, 
-                                  aucMaxRank="50%", threads=1)
+granetobj <- cssRegulons_activity(GRANetObject = granetobj, 
+                                  aucMaxRank   = "50%", 
+                                  threads      = 1)
 
 saveRDS(granetobj, "GRANetProject/granetobj.RDS")
 
