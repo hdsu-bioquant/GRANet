@@ -4,20 +4,43 @@
 # getPeakSet
 
 
-#' Title
+#' Add TFs motif positions linked to open chromatin regions
 #'
-#' @param GRANetObject
-#' @param ArchRProjectObj
-#' @param cssClusterArchR
-#' @param promoter_size
+#' This function takes as input a GRANet object and an ArchRProject object,
+#' and it extracts the position of motifs associated to transcription factors
+#' linked to open chromatin regions.
+#' All the positions of transcription factors included in the co-expression
+#' modules stored in the GRANet object are searched in the ArchRProject object,
+#' and a collection of motifs positions is build for every group of cells
+#' identified from the ArchRProject cell metadata.
+#'
+#' @param GRANetObject GRANet object with computed co-expression modules and
+#' Spearman correlation between transcription factors and target genes.
+#' @param ArchRProjectObj ArchRProject object with the pre-processed scATAC-seq
+#' data. the vignette "02_scATAC-seq_dta_pre-process" shows all the steps
+#' required to process the scATAC-seq data using the package ArchR in order to
+#' be used by GRANet.
+#' @param cssClusterArchR Name of the column in the ArchRProject object that
+#' contains the categorical cell identity annotation (e.g., cluster, cell type,
+#' cell state). All the categories included in the Seurat object originally used
+#' to initialize the GRANet object should be also present in the ArchRProject
+#' metadata.
+#' @param promoter_size Window size to search for transcription factor motifs
+#' located around the TSS of all target genes from the co-expression modules.
 #' @param cellsWithPeak Minimum percentage of cells in a cluster, that are
-#' required to have at least one insertion in a peak to keep it
-#' @param threads
+#' required to have at least one insertion in a peak to keep it.
+#' @param threads Number of threads to use.
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' granetobj <- add_motifs_position_from_ArchR(GRANetObject=granetobj,
+#' ArchRProjectObj=archrproj,
+#' cssClusterArchR="tissue",
+#' threads=8)
+#' }
 add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
 
   #---------------------------------------------------#
