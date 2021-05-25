@@ -4,12 +4,12 @@
 \name{GRANet-class}
 \alias{GRANet-class}
 \alias{GRANet}
-\title{Title}
+\title{Creates a new GRANet object}
 \value{
 
 }
 \description{
-Title
+Creates a new GRANet object
 }
 \section{Slots}{
 
@@ -27,7 +27,5 @@ Title
 \item{\code{cssRegulons}}{list.}
 
 \item{\code{cssRegulonsAUCell}}{matrix.}
-
-\item{\code{.}}{}
 }}
 

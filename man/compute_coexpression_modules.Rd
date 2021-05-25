@@ -2,7 +2,7 @@
 % Please edit documentation in R/coexpression_net.R
 \name{compute_coexpression_modules}
 \alias{compute_coexpression_modules}
-\title{Title}
+\title{Co-expression modules with GRNBoost2}
 \usage{
 compute_coexpression_modules(GRANetObject, TFs, threads = 1)
 }
@@ -15,8 +15,14 @@ in the Seurat object used to create the GRANetObject.}
 \item{threads}{Number of threads to use.}
 }
 \value{
-
+GRANetObject with computed co-expression modules.
 }
 \description{
-Title
+Computes co-expression modules using GRNBoost2. This function uses the python
+packages Arboreto and pySCENIC, please install them before (the vignette
+01_create_condaenv can be follow to install all the python requirements).
+The input is a GRANet object initialized from a Seurat object containing the
+scRNA-seq data as counts, and a list of transcription factors as gene
+symbols. The gene names in the original Seurat object should be symbols as
+well.
 }

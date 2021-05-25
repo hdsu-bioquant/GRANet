@@ -1,7 +1,7 @@
 
 
 
-#' Title
+#' Creates a new GRANet object
 #'
 #' @slot SeuratObject Seurat.
 #' @slot cssCluster character.
@@ -10,7 +10,8 @@
 #' @slot Coexprs_modules data.frame.
 #' @slot cssRegulons list.
 #' @slot cssRegulonsAUCell matrix.
-#' @slot  .
+#'
+#' @importClassesFrom Seurat Seurat
 #'
 #' @return
 #' @export
