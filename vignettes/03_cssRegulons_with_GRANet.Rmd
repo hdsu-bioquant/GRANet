@@ -19,7 +19,6 @@ editor_options:
 ```{r load_style, warning=FALSE, message=FALSE, results="hide"}
 library(BiocStyle)
 library(Seurat)
-library(SCopeLoomR)
 library(dplyr)
 library(ArchR)
 library(AUCell)

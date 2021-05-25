@@ -1,11 +1,32 @@
 Package: GRANet
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Gene Regulatory Accessible Networks
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Andres Quintero
+Maintainer: Andres Quintero <hdsu.service.user@gmail.com>
+Description: The differential activity of transcription factors (TFs) is one of 
+    the defining elements for multiple cell states. This package aims to 
+    quantify TF activity by combining scRNA-seq and scATAC-seq.
+    GRANet builds cell state-specific Regulons (cssRegulons), which reflect the 
+    intrinsict regulatory differences of different tissues, cell types or cell
+    states.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+biocViews:
+Imports: 
+    dplyr,
+    reticulate,
+    Seurat,
+    ArchR,
+    AUCell
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat
+Collate: 
+    'GRANet_class.R'
+    'coexpression_net.R'
+    'cssRegulons.R'
+    'cssRegulons_AUCell.R'
+    
