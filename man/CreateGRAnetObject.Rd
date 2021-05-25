@@ -2,16 +2,35 @@
 % Please edit documentation in R/GRANet_class.R
 \name{CreateGRAnetObject}
 \alias{CreateGRAnetObject}
-\title{Title}
+\title{Creates a GRAnet object}
 \usage{
-CreateGRAnetObject(SeuratObject, cssCluster, genome, threads)
+CreateGRAnetObject(SeuratObject, cssCluster, genome)
 }
 \arguments{
-\item{threads}{}
+\item{SeuratObject}{Seurat object with scRNA-seq counts and a categorical
+cell identity annotation.}
+
+\item{cssCluster}{Name of the column in the Seurat object that contains the
+categorical cell identity annotation (e.g., cluster, cell type, cell state).}
+
+\item{genome}{Genome of the organism under study, supported genomes are:
+"hg19", "hg38", "mm9", and "mm10".}
 }
 \value{
 
 }
 \description{
-Title
+A GRANet object is initialized from a Seurat object containing scRNA-seq
+data as counts. The gene names in the original count matrix should be gene
+symbols as they are required to match to the motifs associated to a list of
+transcription factors. Additionally, one of the columns of the cell metadata
+from the Seurat object should contain a categorical annotation of the cells
+(e.g., cluster, cell type, cell state).
+}
+\examples{
+\dontrun{
+granetobj <- CreateGRAnetObject(SeuratObject = seuratobj,
+cssCluster = "tissue",
+genome = "mm9")
+}
 }

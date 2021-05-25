@@ -30,22 +30,35 @@ GRANet <- setClass(
 
 
 
-#' Title
+#' Creates a GRAnet object
 #'
-#' @param SeuratObject
-#' @param cssCluster
-#' @param genome
-#' @param threads
+#' A GRANet object is initialized from a Seurat object containing scRNA-seq
+#' data as counts. The gene names in the original count matrix should be gene
+#' symbols as they are required to match to the motifs associated to a list of
+#' transcription factors. Additionally, one of the columns of the cell metadata
+#' from the Seurat object should contain a categorical annotation of the cells
+#' (e.g., cluster, cell type, cell state).
+#'
+#' @param SeuratObject Seurat object with scRNA-seq counts and a categorical
+#' cell identity annotation.
+#' @param cssCluster Name of the column in the Seurat object that contains the
+#' categorical cell identity annotation (e.g., cluster, cell type, cell state).
+#' @param genome Genome of the organism under study, supported genomes are:
+#' "hg19", "hg38", "mm9", and "mm10".
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' granetobj <- CreateGRAnetObject(SeuratObject = seuratobj,
+#' cssCluster = "tissue",
+#' genome = "mm9")
+#' }
 CreateGRAnetObject <- function(
   SeuratObject,
   cssCluster,
-  genome,
-  threads
+  genome
 ){
 
   if(!cssCluster %in% colnames(SeuratObject@meta.data)){

@@ -26,3 +26,10 @@ scRNA-seq data as counts, and a list of transcription factors as gene
 symbols. The gene names in the original Seurat object should be symbols as
 well.
 }
+\examples{
+\dontrun{
+granetobj <- compute_coexpression_modules(GRANetObject = granetobj,
+TFs = readLines("data/mm_mgi_tfs.txt"),
+threads = 8)
+}
+}

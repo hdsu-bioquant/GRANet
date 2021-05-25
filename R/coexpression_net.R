@@ -21,6 +21,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' granetobj <- compute_coexpression_modules(GRANetObject = granetobj,
+#' TFs = readLines("data/mm_mgi_tfs.txt"),
+#' threads = 8)
+#' }
 compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
   # if(!file.exists(GRANetObject@ProjectMetadata$pathLoom)){
   #   stop("Loom file with counts not found. Did you move the output directory from
