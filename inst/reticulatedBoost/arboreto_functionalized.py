@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Taken from https://github.com/aertslab/pySCENIC/blob/master/src/pyscenic/cli/arboreto_with_multiprocessing.py
+# Modified from https://github.com/aertslab/pySCENIC/blob/master/src/pyscenic/cli/arboreto_with_multiprocessing.py
 
 import sys
 import time
