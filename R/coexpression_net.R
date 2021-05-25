@@ -4,7 +4,10 @@
 
 #' Title
 #'
-#' @param GRANetObject
+#' @param GRANetObject Object created using the function CreateGRAnetObject
+#' @param TFs Character vector with the list of transcription factors included
+#' in the Seurat object used to create the GRANetObject.
+#' @param threads Number of threads to use.
 #'
 #' @return
 #' @export

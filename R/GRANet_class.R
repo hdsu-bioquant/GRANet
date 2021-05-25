@@ -15,7 +15,6 @@
 #' @return
 #' @export
 #'
-#' @examples
 GRANet <- setClass(
   Class = "GRANet",
   slots = list(SeuratObject      = "Seurat",
@@ -30,6 +29,17 @@ GRANet <- setClass(
 
 
 
+#' Title
+#'
+#' @param SeuratObject
+#' @param cssCluster
+#' @param genome
+#' @param threads
+#'
+#' @return
+#' @export
+#'
+#' @examples
 CreateGRAnetObject <- function(
   SeuratObject,
   cssCluster,

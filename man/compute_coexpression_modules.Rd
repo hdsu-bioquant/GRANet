@@ -7,7 +7,12 @@
 compute_coexpression_modules(GRANetObject, TFs, threads = 1)
 }
 \arguments{
-\item{GRANetObject}{}
+\item{GRANetObject}{Object created using the function CreateGRAnetObject}
+
+\item{TFs}{Character vector with the list of transcription factors included
+in the Seurat object used to create the GRANetObject.}
+
+\item{threads}{Number of threads to use.}
 }
 \value{
 
