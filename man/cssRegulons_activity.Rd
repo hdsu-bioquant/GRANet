@@ -7,7 +7,7 @@
 cssRegulons_activity(GRANetObject, aucMaxRank = "1\%", threads = 1)
 }
 \arguments{
-\item{GRANetObject}{GRANet object with computes cssRegulons.}
+\item{GRANetObject}{GRANet object with computed cssRegulons.}
 
 \item{aucMaxRank}{possible values: "min", "1\%", "5\%", "10\%", "50\%", "100\%".}
 

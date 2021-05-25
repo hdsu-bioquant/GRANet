@@ -72,15 +72,24 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
 
 
 
-#' Title
+#' Add correlation to co-expression modules
 #'
-#' @param GRANetObject
-#' @param threads
+#' Computes the Spearman correlation between the expression of target genes and
+#' transcription factors for all co-expression modules.
+#' This step is needed to distinguish between positively and negatively
+#' regulated co-expression modules.
+#'
+#' @param GRANetObject GRANet object with computed co-expression modules.
+#' @param mask_dropouts Option to include or mask out cells with 0 counts for a
+#' given gene when computing the correlations.
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
+#' }
 add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=FALSE){
   if(ncol(GRANetObject@Coexprs_modules) == 0){
     stop("No co-expression modules found. Compute them with the function compute_coexpression_modules")

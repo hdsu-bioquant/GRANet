@@ -2,16 +2,27 @@
 % Please edit documentation in R/coexpression_net.R
 \name{add_correlation_to_coexpression_modules}
 \alias{add_correlation_to_coexpression_modules}
-\title{Title}
+\title{Add correlation to co-expression modules}
 \usage{
 add_correlation_to_coexpression_modules(GRANetObject, mask_dropouts = FALSE)
 }
 \arguments{
-\item{threads}{}
+\item{GRANetObject}{GRANet object with computed co-expression modules.}
+
+\item{mask_dropouts}{Option to include or mask out cells with 0 counts for a
+given gene when computing the correlations.}
 }
 \value{
 
 }
 \description{
-Title
+Computes the Spearman correlation between the expression of target genes and
+transcription factors for all co-expression modules.
+This step is needed to distinguish between positively and negatively
+regulated co-expression modules.
+}
+\examples{
+\dontrun{
+granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
+}
 }

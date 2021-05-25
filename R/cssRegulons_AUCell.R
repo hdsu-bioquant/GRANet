@@ -1,7 +1,7 @@
 
 #' Title
 #'
-#' @param GRANetObject GRANet object with computes cssRegulons.
+#' @param GRANetObject GRANet object with computed cssRegulons.
 #' @param aucMaxRank possible values: "min", "1\%", "5\%", "10\%", "50\%", "100\%".
 #' @param threads Number of threads to use.
 #'
