@@ -2,7 +2,7 @@
 % Please edit documentation in R/cssRegulons_AUCell.R
 \name{cssRegulons_activity}
 \alias{cssRegulons_activity}
-\title{Title}
+\title{Quantification of cssRegulon activity}
 \usage{
 cssRegulons_activity(GRANetObject, aucMaxRank = "1\%", threads = 1)
 }
@@ -17,5 +17,11 @@ cssRegulons_activity(GRANetObject, aucMaxRank = "1\%", threads = 1)
 
 }
 \description{
-Title
+Quantification of cssRegulon activity
+}
+\examples{
+\dontrun{
+granetobj <- cssRegulons_activity(GRANetObject=granetobj,
+aucMaxRank="50\%", threads=1)
+}
 }

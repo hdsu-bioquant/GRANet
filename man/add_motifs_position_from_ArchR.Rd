@@ -8,7 +8,6 @@ add_motifs_position_from_ArchR(
   GRANetObject,
   ArchRProjectObj,
   cssClusterArchR,
-  promoter_size = 5000,
   cellsWithPeak = 0.01,
   threads = 1
 )
@@ -27,9 +26,6 @@ contains the categorical cell identity annotation (e.g., cluster, cell type,
 cell state). All the categories included in the Seurat object originally used
 to initialize the GRANet object should be also present in the ArchRProject
 metadata.}
-
-\item{promoter_size}{Window size to search for transcription factor motifs
-located around the TSS of all target genes from the co-expression modules.}
 
 \item{cellsWithPeak}{Minimum percentage of cells in a cluster, that are
 required to have at least one insertion in a peak to keep it.}

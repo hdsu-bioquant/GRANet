@@ -1,5 +1,6 @@
 
-#' Title
+#' Quantification of cssRegulon activity
+#'
 #'
 #' @param GRANetObject GRANet object with computed cssRegulons.
 #' @param aucMaxRank possible values: "min", "1\%", "5\%", "10\%", "50\%", "100\%".
@@ -9,6 +10,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' granetobj <- cssRegulons_activity(GRANetObject=granetobj,
+#' aucMaxRank="50%", threads=1)
+#' }
 cssRegulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
 
   #------------------------------------#

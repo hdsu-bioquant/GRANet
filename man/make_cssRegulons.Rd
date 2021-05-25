@@ -2,7 +2,7 @@
 % Please edit documentation in R/cssRegulons.R
 \name{make_cssRegulons}
 \alias{make_cssRegulons}
-\title{Title}
+\title{Construction of cell state-specific Regulons (cssRegulons)}
 \usage{
 make_cssRegulons(
   GRANetObject,
@@ -12,11 +12,28 @@ make_cssRegulons(
 )
 }
 \arguments{
-\item{threads}{}
+\item{GRANetObject}{GRANet object with computed co-expression modules and
+extracted locations of motifs linked to open chromatin regions.}
+
+\item{promoter_size}{Window size to search for transcription factor motifs
+located around the TSS of all target genes from the co-expression modules.}
+
+\item{min_regulon_size}{Minimum number of target genes required to build a
+regulon, composed of a transcription factor and a list of cis-regulated
+target genes.}
+
+\item{threads}{Number of threads to use.}
 }
 \value{
 
 }
 \description{
-Title
+Construction of cell state-specific Regulons (cssRegulons)
+}
+\examples{
+\dontrun{
+granetobj <- make_cssRegulons(GRANetObject = granetobj,
+promoter_size = 50000,
+min_regulon_size=20)
+}
 }

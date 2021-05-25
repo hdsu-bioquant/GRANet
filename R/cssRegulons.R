@@ -25,8 +25,6 @@
 #' cell state). All the categories included in the Seurat object originally used
 #' to initialize the GRANet object should be also present in the ArchRProject
 #' metadata.
-#' @param promoter_size Window size to search for transcription factor motifs
-#' located around the TSS of all target genes from the co-expression modules.
 #' @param cellsWithPeak Minimum percentage of cells in a cluster, that are
 #' required to have at least one insertion in a peak to keep it.
 #' @param threads Number of threads to use.
@@ -41,7 +39,7 @@
 #' cssClusterArchR="tissue",
 #' threads=8)
 #' }
-add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, promoter_size=5000, cellsWithPeak=0.01, threads=1){
+add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClusterArchR, cellsWithPeak=0.01, threads=1){
 
   #---------------------------------------------------#
   # Filter TFs that have no motif in the ATACseq data #
@@ -104,17 +102,27 @@ add_motifs_position_from_ArchR <- function(GRANetObject, ArchRProjectObj, cssClu
 }
 #environment(add_motifs_position_from_ArchR) <- asNamespace('GRANet')
 
-#' Title
+#' Construction of cell state-specific Regulons (cssRegulons)
 #'
-#' @param GRANetObject
-#' @param promoter_size
-#' @param min_regulon_size
-#' @param threads
+#' @param GRANetObject GRANet object with computed co-expression modules and
+#' extracted locations of motifs linked to open chromatin regions.
+#' @param promoter_size Window size to search for transcription factor motifs
+#' located around the TSS of all target genes from the co-expression modules.
+#' @param min_regulon_size Minimum number of target genes required to build a
+#' regulon, composed of a transcription factor and a list of cis-regulated
+#' target genes.
+#' @param threads Number of threads to use.
+
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' granetobj <- make_cssRegulons(GRANetObject = granetobj,
+#' promoter_size = 50000,
+#' min_regulon_size=20)
+#' }
 make_cssRegulons <- function(GRANetObject, promoter_size=5000, min_regulon_size=20, threads=1){
 
   genome <- GRANetObject@ProjectMetadata$Genome
