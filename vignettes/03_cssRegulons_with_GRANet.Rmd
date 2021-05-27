@@ -61,9 +61,13 @@ granetobj <- CreateGRAnetObject(SeuratObject = seuratobj,
 ## GRANet step 1: Compute co-expression modules
 
 ```{r}
+# load TFs symbols:
+data(mm_mgi_tfs)
+length(mm_mgi_tfs)
+
+# Compute co-expression modules
 granetobj <- compute_coexpression_modules(GRANetObject = granetobj, 
-                                          #TFs = head(readLines("data/mm_mgi_tfs.txt")), 
-                                          TFs = readLines("data/mm_mgi_tfs.txt"), 
+                                          TFs = mm_mgi_tfs,
                                           threads = 8)
 granetobj <- add_correlation_to_coexpression_modules(granetobj, mask_dropouts=FALSE)
 
@@ -89,6 +93,22 @@ granetobj <- make_cssRegulons(GRANetObject     = granetobj,
 
 ```
 
+### Slot with cssRegulons
+
+```{r}
+names(granetobj@cssRegulons)
+
+# Size of the Regulons found in brain
+granetobj@cssRegulons$AdultBrain %>% 
+  group_by(TF) %>% 
+  summarise(n = n()) 
+
+
+
+```
+
+
+
 ## GRANet step 4: Compute cssRegulon activity
 
 ```{r}
@@ -96,9 +116,36 @@ granetobj <- cssRegulons_activity(GRANetObject = granetobj,
                                   aucMaxRank   = "50%", 
                                   threads      = 1)
 
+
 saveRDS(granetobj, "GRANetProject/granetobj.RDS")
 
 ```
+
+### Visualize cssRegulon activities
+
+```{r}
+
+Heatmap_AUCell(GRANetObject      = granetobj,
+               show_column_names = FALSE,
+               show_row_names    = FALSE,
+               show_column_dend  = TRUE,
+               show_row_dend     = TRUE,
+               cluster_rows      = TRUE)
+
+
+```
+
+### Slot with Regulon activities
+
+```{r}
+
+dim(granetobj@cssRegulonsAUCell)
+granetobj@cssRegulonsAUCell[1:5, 1:5]
+
+
+```
+
+
 
 
 

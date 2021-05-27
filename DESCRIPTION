@@ -30,4 +30,5 @@ Collate:
     'coexpression_net.R'
     'cssRegulons.R'
     'cssRegulons_AUCell.R'
+    'plot_functions.R'
 RoxygenNote: 7.1.1
