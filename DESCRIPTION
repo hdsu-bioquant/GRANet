@@ -25,6 +25,7 @@ Suggests:
     rmarkdown,
     testthat
 Collate: 
+    'data.R'
     'GRANet_class.R'
     'coexpression_net.R'
     'cssRegulons.R'
