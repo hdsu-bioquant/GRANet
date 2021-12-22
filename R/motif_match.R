@@ -1,5 +1,119 @@
+#------------------------------------------------------------------------------#
+#            Helper functions  - Taken from ArchR                              #
+#------------------------------------------------------------------------------#
+.requirePackage <- function (x = NULL, load = TRUE, installInfo = NULL, source = NULL)
+{
+  if (x %in% rownames(installed.packages())) {
+    if (load) {
+      suppressPackageStartupMessages(require(x, character.only = TRUE))
+    }
+    else {
+      return(0)
+    }
+  }
+  else {
+    if (!is.null(source) & is.null(installInfo)) {
+      if (tolower(source) == "cran") {
+        installInfo <- paste0("install.packages(\"",
+                              x, "\")")
+      }
+      else if (tolower(source) == "bioc") {
+        installInfo <- paste0("BiocManager::install(\"",
+                              x, "\")")
+      }
+      else {
+        stop("Unrecognized package source, available are cran/bioc!")
+      }
+    }
+    if (!is.null(installInfo)) {
+      stop(paste0("Required package : ", x, " is not installed/found!\n  Package Can Be Installed : ",
+                  installInfo))
+    }
+    else {
+      stop(paste0("Required package : ", x, " is not installed/found!"))
+    }
+  }
+}
 
-#ArchR:::.summarizeJASPARMotifs()
+.summarizeJASPARMotifs <- function (motifs = NULL)
+{
+  motifNames <- lapply(seq_along(motifs), function(x) {
+    namex <- make.names(motifs[[x]]@name)
+    if (grepl("LINE", namex)) {
+      splitNamex <- stringr::str_split(motifs[[x]]@ID,
+                                       pattern = "\\_", simplify = TRUE)
+      namex <- splitNamex[1, grep("LINE", splitNamex[1,
+      ]) + 1]
+    }
+    if (substr(namex, nchar(namex), nchar(namex)) == ".") {
+      namex <- substr(namex, 1, nchar(namex) - 1)
+    }
+    namex <- paste0(namex, "_", x)
+    namex
+  }) %>% unlist(.)
+  motifNames2 <- lapply(seq_along(motifs), function(x) {
+    namex <- make.names(motifs[[x]]@name)
+    if (grepl("LINE", namex)) {
+      splitNamex <- stringr::str_split(motifs[[x]]@ID,
+                                       pattern = "\\_", simplify = TRUE)
+      namex <- splitNamex[1, grep("LINE", splitNamex[1,
+      ]) + 1]
+    }
+    if (substr(namex, nchar(namex), nchar(namex)) == ".") {
+      namex <- substr(namex, 1, nchar(namex) - 1)
+    }
+    namex
+  }) %>% unlist(.)
+  motifDF <- lapply(seq_along(motifs), function(x) {
+    df <- data.frame(row.names = motifNames[x], name = motifNames2[[x]],
+                     ID = motifs[[x]]@ID, strand = motifs[[x]]@strand,
+                     stringsAsFactors = FALSE)
+  }) %>% Reduce("rbind", .) %>% data.frame
+  names(motifs) <- motifNames
+  out <- list(motifs = motifs, motifSummary = motifDF)
+  return(out)
+}
+
+.summarizeChromVARMotifs <- function (motifs = NULL)
+{
+  motifNames <- lapply(seq_along(motifs), function(x) {
+    namex <- make.names(motifs[[x]]@name)
+    if (grepl("LINE", namex)) {
+      splitNamex <- stringr::str_split(motifs[[x]]@ID,
+                                       pattern = "\\_", simplify = TRUE)
+      namex <- splitNamex[1, grep("LINE", splitNamex[1,
+      ]) + 1]
+    }
+    if (substr(namex, nchar(namex), nchar(namex)) == ".") {
+      namex <- substr(namex, 1, nchar(namex) - 1)
+    }
+    namex <- paste0(namex, "_", x)
+    namex
+  }) %>% unlist(.)
+  motifNames2 <- lapply(seq_along(motifs), function(x) {
+    namex <- make.names(motifs[[x]]@name)
+    if (grepl("LINE", namex)) {
+      splitNamex <- stringr::str_split(motifs[[x]]@ID,
+                                       pattern = "\\_", simplify = TRUE)
+      namex <- splitNamex[1, grep("LINE", splitNamex[1,
+      ]) + 1]
+    }
+    if (substr(namex, nchar(namex), nchar(namex)) == ".") {
+      namex <- substr(namex, 1, nchar(namex) - 1)
+    }
+    namex
+  }) %>% unlist(.)
+  motifDF <- lapply(seq_along(motifs), function(x) {
+    df <- data.frame(row.names = motifNames[x], name = motifNames2[[x]],
+                     ID = motifs[[x]]@ID, strand = motifs[[x]]@strand,
+                     stringsAsFactors = FALSE)
+  }) %>% Reduce("rbind", .) %>% data.frame
+  names(motifs) <- motifNames
+  out <- list(motifs = motifs, motifSummary = motifDF)
+  return(out)
+}
+
+
 
 get_motif_collection <- function(motifSet, genome, collection = "CORE", version = 2){
   species <- list(hg19 = "Homo sapiens",
@@ -12,35 +126,35 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
   #----------------------------------------------------------------------------#
   if(tolower(motifSet)=="jaspar2020"){
 
-    ArchR:::.requirePackage("JASPAR2020",installInfo='BiocManager::install("JASPAR2020")')
+    .requirePackage("JASPAR2020",installInfo='BiocManager::install("JASPAR2020")')
     #args <- list(species = species, collection = collection, ...)
     args <- list(species = species, collection = collection)
     motifs <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, args)
-    obj <- ArchR:::.summarizeJASPARMotifs(motifs)
+    obj <- .summarizeJASPARMotifs(motifs)
     motifs <- obj$motifs
     motifSummary <- obj$motifSummary
 
   }else if(tolower(motifSet)=="jaspar2018"){
 
-    ArchR:::.requirePackage("JASPAR2018",installInfo='BiocManager::install("JASPAR2018")')
+    .requirePackage("JASPAR2018",installInfo='BiocManager::install("JASPAR2018")')
     args <- list(species = species, collection = collection)
     motifs <- TFBSTools::getMatrixSet(JASPAR2018::JASPAR2018, args)
-    obj <- ArchR:::.summarizeJASPARMotifs(motifs)
+    obj <- .summarizeJASPARMotifs(motifs)
     motifs <- obj$motifs
     motifSummary <- obj$motifSummary
 
   }else if(tolower(motifSet)=="jaspar2016"){
 
-    ArchR:::.requirePackage("JASPAR2016",installInfo='BiocManager::install("JASPAR2018")')
+    .requirePackage("JASPAR2016",installInfo='BiocManager::install("JASPAR2018")')
     args <- list(species = species, collection = collection)
     motifs <- TFBSTools::getMatrixSet(JASPAR2016::JASPAR2016, args)
-    obj <- ArchR:::.summarizeJASPARMotifs(motifs)
+    obj <- .summarizeJASPARMotifs(motifs)
     motifs <- obj$motifs
     motifSummary <- obj$motifSummary
 
   }else if(tolower(motifSet)=="cisbp"){
 
-    ArchR:::.requirePackage("chromVARmotifs",installInfo='devtools::install_github("GreenleafLab/chromVARmotifs")')
+    .requirePackage("chromVARmotifs",installInfo='devtools::install_github("GreenleafLab/chromVARmotifs")')
     if(tolower(species) == "mus musculus"){
       if(version == 1){
         message("Using version 1 motifs!")
@@ -53,7 +167,7 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
       }else{
         stop("Only versions 1 and 2 exist!")
       }
-      obj <- ArchR:::.summarizeChromVARMotifs(motifs)
+      obj <- .summarizeChromVARMotifs(motifs)
       motifs <- obj$motifs
       motifSummary <- obj$motifSummary
     }else if(tolower(species) == "homo sapiens"){
@@ -68,7 +182,7 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
       }else{
         stop("Only versions 1 and 2 exist!")
       }
-      obj <- ArchR:::.summarizeChromVARMotifs(motifs)
+      obj <- .summarizeChromVARMotifs(motifs)
       motifs <- obj$motifs
       motifSummary <- obj$motifSummary
     }else{
@@ -77,19 +191,19 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
 
   }else if(tolower(motifSet)=="encode"){
 
-    ArchR:::.requirePackage("chromVARmotifs",installInfo='devtools::install_github("GreenleafLab/chromVARmotifs")')
+    .requirePackage("chromVARmotifs",installInfo='devtools::install_github("GreenleafLab/chromVARmotifs")')
     data("encode_pwms")
     motifs <- encode_pwms
-    obj <- ArchR:::.summarizeChromVARMotifs(motifs)
+    obj <- .summarizeChromVARMotifs(motifs)
     motifs <- obj$motifs
     motifSummary <- obj$motifSummary
 
   }else if(tolower(motifSet)=="homer"){
 
-    ArchR:::.requirePackage("chromVARmotifs",installInfo='devtools::install_github("GreenleafLab/chromVARmotifs")')
+    .requirePackage("chromVARmotifs",installInfo='devtools::install_github("GreenleafLab/chromVARmotifs")')
     data("homer_pwms")
     motifs <- homer_pwms
-    obj <- ArchR:::.summarizeChromVARMotifs(motifs)
+    obj <- .summarizeChromVARMotifs(motifs)
     motifs <- obj$motifs
     motifSummary <- obj$motifSummary
 
@@ -115,7 +229,7 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
 # y <- get_motif_collection(motifSet = "jaspar2020", genome = "hg19")
 # y <- get_motif_collection(motifSet = "encode", genome = "hg19")
 # y <- get_motif_collection(motifSet = "homer", genome = "hg19")
-# y <- get_motif_collection(motifSet = "cisbp", genome = "hg19")
+# y <- GRANet:::get_motif_collection(motifSet = "cisbp", genome = "hg19")
 # y <- get_motif_collection(motifSet = "custom", genome = "hg19")
 # y$motifSummary
 # names(y)
@@ -123,5 +237,3 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
 # table(y$motifSummary$name  %in% hs_hgnc_curated_tfs)
 # table(sub("_.*", "", names(y$motifs)) %in% rownames(granetobj@SeuratObject))
 # table(y$motifSummary$name  %in% rownames(granetobj@SeuratObject))
-
-

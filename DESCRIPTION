@@ -26,6 +26,8 @@ Suggests:
     testthat
 Collate: 
     'data.R'
+    'GRANetMultiome_class.R'
+    'motif_match.R'
     'GRANet_class.R'
     'coexpression_net.R'
     'cssRegulons.R'
