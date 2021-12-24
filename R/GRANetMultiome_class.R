@@ -56,6 +56,8 @@ GRANetMultiome <- setClass(
 #' }
 CreateGRANetMultiomeObject <- function(
   SeuratObject,
+  peak_counts,
+  peaks_GRanges,
   motifSet,
   genome
 ){
@@ -69,14 +71,28 @@ CreateGRANetMultiomeObject <- function(
   #   stop("cssCluster not in meta.data of Seurat Object")
   # }
 
+  # get TF motifs and keep only those included in the scRNA-seq data
   motifs <- get_motif_collection(motifSet = motifSet, genome = "hg19")
+  message("A total of ", length(motifs$motifs), " motifs found in ", motifSet)
 
+  idx <- motifs$motifSummary$name %in% rownames(SeuratObject)
+  motifs$motifSummary <- motifs$motifSummary[idx,]
+  idx <- names(motifs$motifs) %in% rownames(motifs$motifSummary)
+  motifs$motifs <- motifs$motifs[idx]
+  message("Using only ", length(motifs$motifs),
+          " motifs for which a corresponding TF was found in the scRNA-seq data")
 
 
   GRANetObject <- new(
-    Class = 'GRANetMultiome',
-    SeuratObject = SeuratObject,
-    ProjectMetadata = list(Genome = genome)
+    Class            = 'GRANetMultiome',
+    SeuratObject     = SeuratObject,
+    TFmotif_location = list(motifs        = motifs$motifs,
+                            motifSummary  = motifs$motifSummary,
+                            # Add Granges and peaks counts to GRANet object
+                            peak_counts   = peak_counts,
+                            peaks_GRanges = peaks_GRanges
+                            ),
+    ProjectMetadata  = list(Genome = genome)
   )
 
   return(GRANetObject)

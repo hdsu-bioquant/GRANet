@@ -114,6 +114,62 @@
 }
 
 
+check_BSGenome <- function(
+  GRANetObject
+){
+  genome <- GRANetObject@ProjectMetadata$Genome
+
+  #Check if BSgenome exists!
+  if(tolower(genome)=="hg19"){
+    if(!requireNamespace("BSgenome.Hsapiens.UCSC.hg19", quietly = TRUE)){
+      if(install){
+        message("BSgenome for hg19 not installed! Now installing by the following:\n\tBiocManager::install(\"BSgenome.Hsapiens.UCSC.hg19\")")
+        BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
+      }else{
+        stop("BSgenome for hg19 not installed! Please install by setting install = TRUE or by the following:\n\tBiocManager::install(\"BSgenome.Hsapiens.UCSC.hg19\")")
+      }
+    }
+  }else if(tolower(genome)=="hg19test"){
+    if(!requireNamespace("BSgenome.Hsapiens.UCSC.hg19", quietly = TRUE)){
+      if(install){
+        message("BSgenome for hg19 not installed! Now installing by the following:\n\tBiocManager::install(\"BSgenome.Hsapiens.UCSC.hg19\")")
+        BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
+      }else{
+        stop("BSgenome for hg19 not installed! Please install by setting install = TRUE or by the following:\n\tBiocManager::install(\"BSgenome.Hsapiens.UCSC.hg19\")")
+      }
+    }
+  }else if(tolower(genome)=="hg38"){
+    if(!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)){
+      if(install){
+        message("BSgenome for hg38 not installed! Now installing by the following:\n\tBiocManager::install(\"BSgenome.Hsapiens.UCSC.hg38\")")
+        BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+      }else{
+        stop("BSgenome for hg38 not installed! Please install by setting install = TRUE or by the following:\n\tBiocManager::install(\"BSgenome.Hsapiens.UCSC.hg38\")")
+      }
+    }
+  }else if(tolower(genome)=="mm9"){
+    if(!requireNamespace("BSgenome.Mmusculus.UCSC.mm9", quietly = TRUE)){
+      if(install){
+        message("BSgenome for mm9 not installed! Now installing by the following:\n\tBiocManager::install(\"BSgenome.Mmusculus.UCSC.mm9\")")
+        BiocManager::install("BSgenome.Mmusculus.UCSC.mm9")
+      }else{
+        stop("BSgenome for mm9 not installed! Please install by setting install = TRUE or by the following:\n\tBiocManager::install(\"BSgenome.Mmusculus.UCSC.mm9\")")
+      }
+    }
+  }else if(tolower(genome)=="mm10"){
+    if(!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE)){
+      if(install){
+        message("BSgenome for mm10 not installed! Now installing by the following:\n\tBiocManager::install(\"BSgenome.Mmusculus.UCSC.mm10\")")
+        BiocManager::install("BSgenome.Mmusculus.UCSC.mm10")
+      }else{
+        stop("BSgenome for mm10 not installed! Please install by setting install = TRUE or by the following:\n\tBiocManager::install(\"BSgenome.Mmusculus.UCSC.mm10\")")
+      }
+    }
+  }
+
+}
+#check_BSGenome(granetobj)
+
 
 get_motif_collection <- function(motifSet, genome, collection = "CORE", version = 2){
   species <- list(hg19 = "Homo sapiens",
@@ -221,8 +277,8 @@ get_motif_collection <- function(motifSet, genome, collection = "CORE", version 
 
 
   return(
-    list(motifs = motifs,
-         motifSummary=motifSummary)
+    list(motifs       = motifs,
+         motifSummary = motifSummary)
   )
 }
 
