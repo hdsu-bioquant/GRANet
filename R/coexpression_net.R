@@ -1,5 +1,41 @@
 
+#' Co-expression modules with GRNBoost2
+#'
+#' Computes co-expression modules using GRNBoost2. This function uses the python
+#' packages Arboreto and pySCENIC, please install them before (the vignette
+#' 01_create_condaenv can be follow to install all the python requirements).
+#' The input is a GRANet object initialized from a Seurat object containing the
+#' scRNA-seq data as counts, and a list of transcription factors as gene
+#' symbols. The gene names in the original Seurat object should be symbols as
+#' well.
+#'
+#' @param GRANetObject Object created using the function CreateGRAnetObject
+#' @param threads Number of threads to use.
+#'
+#' @return GRANetObject with computed co-expression modules.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' granetobj <- coexpression_modules_grnboost2(GRANetObject = granetobj,
+#' threads = 8)
+#' }
+coexpression_modules_grnboost2 <- function(
+  GRANetObject,
+  threads
+){
+  GRANetObject <- compute_coexpression_modules(
+    GRANetObject = GRANetObject,
+    TFs = unique(GRANetObject@TFmotif_location$motifSummary$name),
+    threads = threads
+  )
+  GRANetObject <- add_correlation_to_coexpression_modules(
+    GRANetObject,
+    mask_dropouts=FALSE
+  )
 
+  return(GRANetObject)
+}
 
 
 #' Co-expression modules with GRNBoost2
