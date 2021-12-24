@@ -4,17 +4,23 @@
 \alias{CreateGRANetMultiomeObject}
 \title{Creates a GRAnet object}
 \usage{
-CreateGRANetMultiomeObject(SeuratObject, cssCluster, genome)
+CreateGRANetMultiomeObject(
+  SeuratObject,
+  peak_counts,
+  peaks_GRanges,
+  motifSet,
+  genome
+)
 }
 \arguments{
 \item{SeuratObject}{Seurat object with scRNA-seq counts and a categorical
 cell identity annotation.}
 
-\item{cssCluster}{Name of the column in the Seurat object that contains the
-categorical cell identity annotation (e.g., cluster, cell type, cell state).}
-
 \item{genome}{Genome of the organism under study, supported genomes are:
 "hg19", "hg38", "mm9", and "mm10".}
+
+\item{cssCluster}{Name of the column in the Seurat object that contains the
+categorical cell identity annotation (e.g., cluster, cell type, cell state).}
 }
 \value{
 

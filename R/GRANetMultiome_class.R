@@ -66,6 +66,16 @@ CreateGRANetMultiomeObject <- function(
     stop("Non supported genome, please use one of the following:\n",
          "hg19, hg38, mm9, mm10")
   }
+  if (is.null(peaks_GRanges$PeakID)) {
+    stop("PeakID column missing in peaks_GRanges",
+         "This column should match exactly the row names on the peak_counts matrix")
+  }
+  if (!identical(peaks_GRanges$PeakID, rownames(peak_counts))) {
+    stop("PeakID column in peaks_GRanges does not match peaks_GRanges row names ",
+         "This column should match exactly the row names on the peak_counts matrix")
+  }
+
+
 
   # if(!cssCluster %in% colnames(SeuratObject@meta.data)){
   #   stop("cssCluster not in meta.data of Seurat Object")
