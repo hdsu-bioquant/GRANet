@@ -17,13 +17,12 @@
 #'
 GRANetMultiome <- setClass(
   Class = "GRANetMultiome",
-  slots = list(SeuratObject      = "Seurat",
-               #cssCluster        = "character",
-               ProjectMetadata   = "list",
-               TFmotif_location  = "list",
-               Coexprs_modules   = "data.frame",
-               cssRegulons       = "list",
-               cssRegulonsAUCell = "matrix")
+  slots = list(SeuratObject     = "Seurat",
+               ProjectMetadata  = "list",
+               TFmotif_location = "list",
+               Coexprs_modules  = "data.frame",
+               Regulons         = "list",
+               RegulonsAUCell   = "matrix")
 
 )
 
