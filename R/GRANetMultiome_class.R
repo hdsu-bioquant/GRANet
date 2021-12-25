@@ -91,6 +91,9 @@ CreateGRANetMultiomeObject <- function(
   message("Using only ", length(motifs$motifs),
           " motifs for which a corresponding TF was found in the scRNA-seq data")
 
+  # transform peak matrix to binary sparse matrix
+  peak_counts <- as(peak_counts, "lgCMatrix")
+
 
   GRANetObject <- new(
     Class            = 'GRANetMultiome',

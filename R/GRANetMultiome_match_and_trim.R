@@ -121,6 +121,8 @@ annotate_motif_positions <- function(
 
   # Get gene promoters
   message("Add TF ID...")
+  # keep only genes included in the co-expression modules
+  genesGr <- genesGr[genesGr$symbol %in% rownames(GRANetObject@SeuratObject)]
   tssGr <- resize(genesGr, width = 1, fix = "start")
   promoters <- trim(suppressWarnings(tssGr+promoter_size))
 
@@ -145,6 +147,23 @@ annotate_motif_positions <- function(
   gr_prom_peaks <- gr_promoters[queryHits(grhits)]
   gr_prom_peaks$PeakID <- GRANetObject@TFmotif_location$peaks_GRanges$PeakID[subjectHits(grhits)]
 
+
+  # Add regulon ID
+  idx <- match(
+    paste0(gr_prom_peaks$TF, ".",
+           gr_prom_peaks$target),
+    paste0(GRANetObject@Coexprs_modules$TF, ".",
+           GRANetObject@Coexprs_modules$target)
+  )
+  gr_prom_peaks$regulation <- GRANetObject@Coexprs_modules$regulation[idx]
+  # Remove interactions not found in co-expression modules
+  gr_prom_peaks <- gr_prom_peaks[!is.na(gr_prom_peaks$regulation)]
+  # Remove interactions without negative or postive correlation
+  gr_prom_peaks <- gr_prom_peaks[!gr_prom_peaks$regulation == 0]
+  # Add regulon ID
+  gr_prom_peaks$RegulonID <- paste0(gr_prom_peaks$TF, " (",
+                                    if_else(gr_prom_peaks$regulation == 1, '+', "-"),
+                                    ")")
 
   GRANetObject@TFmotif_location$annotated_motifs <- gr_prom_peaks
   return(GRANetObject)
@@ -179,6 +198,13 @@ make_regulons <- function(
     # add TF to regulon
     purrr::map(function(x) c(unique(x$TF), x$target))
 
+
+  # Remove TFs with small regulons from annotated motifs
+  gr_prom_peaks <- GRANetObject@TFmotif_location$annotated_motifs
+  gr_prom_peaks <- gr_prom_peaks[gr_prom_peaks$RegulonID %in% names(regulons)]
+
+
+  GRANetObject@TFmotif_location$annotated_motifs <- gr_prom_peaks
   GRANetObject@Regulons <- regulons
 
   return(GRANetObject)
