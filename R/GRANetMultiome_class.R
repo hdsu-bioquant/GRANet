@@ -22,8 +22,8 @@ GRANetMultiome <- setClass(
                TFmotif_location = "list",
                Coexprs_modules  = "data.frame",
                Regulons         = "list",
-               RegulonsAUCell   = "matrix")
-
+               RegulonsAUCell   = "list",
+               Reg_interactions = "list")
 )
 
 
