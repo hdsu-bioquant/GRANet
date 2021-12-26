@@ -19,7 +19,8 @@ Imports:
     reticulate,
     Seurat,
     ArchR,
-    AUCell
+    AUCell,
+    matrixTests
 Suggests: 
     knitr,
     rmarkdown,

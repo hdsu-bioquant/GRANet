@@ -55,7 +55,7 @@ regulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
   # Add cssRegulons AUCell to slot
   GRANetObject@RegulonsAUCell <- list(
     AUCellScores = regulonAUC,
-    AUCellBin    = scenic_binarized[[1]],
+    AUCellBin    = as(t(scenic_binarized[[1]]), "lgCMatrix"),
     AUCellThrs   = scenic_binarized[[2]]
   )
 

@@ -119,6 +119,9 @@ annotate_motif_positions <- function(
   }
   seqlevelsStyle(genesGr) <- 'UCSC'
 
+  ### !!!!!! FIX use ENSEMBL ID instead of symbol to avoid duplications
+  genesGr <- genesGr[!duplicated(genesGr$symbol)]
+
   # Get gene promoters
   message("Add TF ID...")
   # keep only genes included in the co-expression modules
