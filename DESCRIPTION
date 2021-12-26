@@ -30,6 +30,7 @@ Collate:
     'GRANetMultiome_class.R'
     'GRANetMultiome_match_and_trim.R'
     'GRANetMultiome_regulon_AUCell.R'
+    'GRANetMultiome_reg_interactions.R'
     'motif_match.R'
     'GRANet_class.R'
     'coexpression_net.R'
