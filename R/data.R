@@ -9,14 +9,14 @@
 #'
 #' @format List with gene and peak counts, annotation and Seurat object with gene counts as symbols.
 #' \describe{
-#'   \item{scCat_human_embryo}{72 human cells from the blastocyst and morula stage}
+#'   \item{hs_scCATseq_embryo}{72 human cells from the blastocyst and morula stage}
 #'   ...
 #' }
 #' @source \url{https://doi.org/10.1038/s41467-018-08205-7}
 #'
-#' @usage data(scCat_human_embryo)
+#' @usage data(hs_scCATseq_embryo)
 #'
-"scCat_human_embryo"
+"hs_scCATseq_embryo"
 
 
 #' Human transcription factors
