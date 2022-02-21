@@ -1,3 +1,24 @@
+#' Human embryo scCAT-seq data
+#'
+#' Gene expression and chromatin accessibility data for 72 human cells from the
+#' blastocyst and morula stage.
+#' Liu, L., Liu, C., Quintero, A. et al.
+#' Deconvolution of single-cell multi-omics layers reveals regulatory heterogeneity.
+#' Nat Commun 10, 470 (2019). https://doi.org/10.1038/s41467-018-08205-7
+#'
+#'
+#' @format List with gene and peak counts, annotation and Seurat object with gene counts as symbols.
+#' \describe{
+#'   \item{scCat_human_embryo}{72 human cells from the blastocyst and morula stage}
+#'   ...
+#' }
+#' @source \url{https://doi.org/10.1038/s41467-018-08205-7}
+#'
+#' @usage data(scCat_human_embryo)
+#'
+"scCat_human_embryo"
+
+
 #' Human transcription factors
 #'
 #' List curated by Van de Sande, B., Flerin, C., Davie, K. et al.
