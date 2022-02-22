@@ -1,0 +1,236 @@
+---
+title: "Gene Regulatory Networks with multiome data"
+author: "HDSU"
+date: "21.02.2022"
+vignette: >
+  %\VignetteIndexEntry{GRNMultiome}
+  %\VignetteEncoding{UTF-8}  
+  %\VignetteEngine{knitr::rmarkdown}
+output:
+  BiocStyle::html_document:
+    toc: yes
+  #md_document:
+  #  variant: markdown_github
+editor_options: 
+  chunk_output_type: console
+---
+
+  
+```{r load_style, warning=FALSE, message=FALSE, results="hide"}
+library(GRANet)
+library(tidyverse)
+library(matrixTests)
+
+```
+
+Using gene expression and chromatin accessibility data, rom a multiomics dataet, 
+where both data modalities are available for every single-cell,
+GRANet finds regulatory interactions between regulatory elements and target genes.
+These interactions are used to build a gene regulatory network (GRN) composed of regulons.
+The activity of every regulon is quantified using the expression of all genes belonging to them.
+
+This Vignette shows how to use GRANet to build GRNs from multiomics experiments,
+using a dataset where gene expression and chromatin accessibility data is available 
+for 72 human cells from the blastocyst and morula stage.
+Liu, L., Liu, C., Quintero, A. et al. 
+Deconvolution of single-cell multi-omics layers reveals regulatory heterogeneity.
+Nat Commun 10, 470 (2019). https://doi.org/10.1038/s41467-018-08205-7
+
+
+# Example: Human embryo scCAT-seq data
+
+## Read data
+
+```{r}
+# Load gene expression and chromatin accessibility data for human embryo cells:
+data(hs_scCATseq_embryo)
+names(hs_scCATseq_embryo)
+head(hs_scCATseq_embryo$annotation)
+
+```
+
+## Activate conda environment 
+
+GRANet uses several python packages, the easiest way to install them and make them available for GRANet is using conda (see vignette _01_create_condaenv_).
+
+```{r}
+reticulate::use_condaenv("granet")
+```
+
+## Create GRANet object
+
+```{r}
+#------------------------------------------------------------------------------#
+#                           Create GRANet object                               #
+#------------------------------------------------------------------------------#
+## Create GRANet object
+granetobj <- CreateGRANetMultiomeObject(SeuratObject  = hs_scCATseq_embryo$seuratobj,
+                                        peak_counts   = hs_scCATseq_embryo$peak_counts,
+                                        peaks_GRanges = hs_scCATseq_embryo$peaks_ranges,
+                                        motifSet      = "cisbp",
+                                        genome        = 'hg19')
+
+```
+
+
+## GRANet step 1: Compute co-expression modules
+
+```{r}
+#------------------------------------------------------------------------------#
+#                       Active Transcription Factors                           #
+#------------------------------------------------------------------------------#
+# Compute co-expression modules
+granetobj <- coexpression_modules_grnboost2(GRANetObject = granetobj,
+                                            threads = 60)
+head(granetobj@Coexprs_modules)
+
+```
+
+
+## GRANet step 2: Find motifs position in chromatin accessible regions and trim co-expression modules -> regulons
+
+```{r}
+#------------------------------------------------------------------------------#
+#                       Active Transcription Factors                           #
+#------------------------------------------------------------------------------#
+# Compute regulons
+granetobj <- match_motifs_and_trim(GRANetObject=granetobj,
+                                   window_size=10000)
+granetobj@TFmotif_location$annotated_motifs
+names(granetobj@Regulons)
+
+# Find active TFs per cell
+granetobj <- regulons_activity(GRANetObject=granetobj, aucMaxRank="1%", threads=50)
+class(granetobj@RegulonsAUCell)
+class(granetobj@RegulonsAUCell$AUCellBin)
+```
+
+## GRANet step 3: Find regulatory relationships
+
+
+```{r}
+#------------------------------------------------------------------------------#
+#                       Infer Regulatory Relationships.                        #
+#------------------------------------------------------------------------------#
+granetobj <- infer_reg_interactions(GRANetObject             = granetobj,
+                                     min_cell_per_interaction = 0.01,
+                                     test_p_val_threshold     = 0.05)
+
+granetobj@Reg_interactions$RegInteractionsBin
+```
+
+
+
+```{r}
+#------------------------------------------------------------------------------#
+#                       UMAP of Regulatory Relationships.                      #
+#------------------------------------------------------------------------------#
+regmat_umap <- uwot::umap(as.matrix(t(granetobj@Reg_interactions$RegInteractionsBin)),
+                          pca = 50, pca_center = F, n_neighbors = 15,
+                          n_components = 2, n_threads = 25)
+plot(regmat_umap[,1], regmat_umap[,2])
+
+annot <- granet_raw$annotation
+annot$UMAP1 <- regmat_umap[,1]
+annot$UMAP2 <- regmat_umap[,2]
+ggplot(annot, aes(x=UMAP1, y=UMAP2, color=celltype)) +
+  geom_point() +
+  cowplot::theme_cowplot()
+
+ls()
+
+```
+
+
+
+```{r}
+##––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––##
+##                              Create Signac                                 ##
+##––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––##
+library(Signac)
+library(Seurat)
+
+# Create a ChromatinAssay 
+head(granetobj@Coexprs_modules)
+
+
+regmat_lsi <- RunTFIDF(granetobj@Reg_interactions$RegInteractionsBin)
+regmat_lsi <- RunSVD(regmat_lsi, n=100)
+head(Embeddings(regmat_lsi)[, 1:5])
+dim(Embeddings(regmat_lsi))
+
+regmat_umap <- uwot::umap(Embeddings(regmat_lsi),
+                          n_neighbors = 15, n_components = 2, n_threads = 25)
+plot(regmat_umap[,1], regmat_umap[,2])
+
+annot <- hs_scCATseq_embryo$annotation
+annot$UMAP1 <- regmat_umap[,1]
+annot$UMAP2 <- regmat_umap[,2]
+ggplot(annot, aes(x=UMAP1, y=UMAP2, color=celltype)) +
+  geom_point() +
+  cowplot::theme_cowplot()
+
+
+```
+
+
+
+
+
+
+### Slot with regulons
+
+```{r}
+names(granetobj@cssRegulons)
+
+# Size of the Regulons found in brain
+granetobj@cssRegulons$AdultBrain %>% 
+  group_by(TF) %>% 
+  summarise(n = n()) 
+
+
+
+```
+
+
+
+## GRANet step 4: Compute cssRegulon activity
+
+```{r}
+granetobj <- cssRegulons_activity(GRANetObject = granetobj, 
+                                  aucMaxRank   = "50%", 
+                                  threads      = 1)
+
+
+saveRDS(granetobj, "GRANetProject/granetobj.RDS")
+
+```
+
+### Visualize cssRegulon activities
+
+```{r}
+
+Heatmap_AUCell(GRANetObject      = granetobj,
+               show_column_names = FALSE,
+               show_row_names    = FALSE,
+               show_column_dend  = TRUE,
+               show_row_dend     = TRUE,
+               cluster_rows      = TRUE)
+
+
+```
+
+### Slot with Regulon activities
+
+```{r}
+
+dim(granetobj@cssRegulonsAUCell)
+granetobj@cssRegulonsAUCell[1:5, 1:5]
+
+
+```
+
+
+
+
+
