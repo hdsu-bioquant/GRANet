@@ -6,7 +6,7 @@
 \usage{
 match_motifs_and_trim(
   GRANetObject,
-  promoter_size,
+  window_size,
   min_regulon_size = 20,
   cutOff = 5e-05,
   width = 7
@@ -16,9 +16,6 @@ match_motifs_and_trim(
 \item{GRANetObject}{GRANet object with computed co-expression modules and
 Spearman correlation between transcription factors and target genes.}
 
-\item{promoter_size}{Window size to search for transcription factor motifs
-located around the TSS of all target genes from the co-expression modules.}
-
 \item{min_regulon_size}{Minimum number of target genes required to build a
 regulon, composed of a transcription factor and a list of cis-regulated
 target genes.}
@@ -26,6 +23,9 @@ target genes.}
 \item{cutOff}{motifmatchr.: p-value cutoff for returning motifs}
 
 \item{width}{motifmatchr: p-value cutoff for returning motifs}
+
+\item{promoter_size}{Window size to search for transcription factor motifs
+located around the TSS of all target genes from the co-expression modules.}
 }
 \value{
 
@@ -42,6 +42,6 @@ kept in order to create the regulons.
 \examples{
 \dontrun{
 granetobj <- match_motifs_and_trim(GRANetObject=granetobj,
-promoter_size=10000)
+window_size=10000)
 }
 }

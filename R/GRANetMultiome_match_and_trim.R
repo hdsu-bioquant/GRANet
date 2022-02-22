@@ -26,11 +26,11 @@
 #' @examples
 #' \dontrun{
 #' granetobj <- match_motifs_and_trim(GRANetObject=granetobj,
-#' promoter_size=10000)
+#' window_size=10000)
 #' }
 match_motifs_and_trim <- function(
   GRANetObject,
-  promoter_size,
+  window_size,
   min_regulon_size=20,
   cutOff = 5e-05,
   width = 7
@@ -41,7 +41,7 @@ match_motifs_and_trim <- function(
                                        width        = width)
   message("Annotating motifs positions with target genes and peaksID")
   GRANetObject <- annotate_motif_positions(GRANetObject  = GRANetObject,
-                                           promoter_size = promoter_size)
+                                           promoter_size = window_size)
 
   message("Building regulons")
   GRANetObject <- make_regulons(GRANetObject     = GRANetObject,
