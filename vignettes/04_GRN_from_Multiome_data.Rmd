@@ -95,7 +95,7 @@ head(granetobj@Coexprs_modules)
 #------------------------------------------------------------------------------#
 # Compute regulons
 granetobj <- match_motifs_and_trim(GRANetObject=granetobj,
-                                   window_size=10000)
+                                   window_size=100000)
 granetobj@TFmotif_location$annotated_motifs
 names(granetobj@Regulons)
 
@@ -125,20 +125,25 @@ granetobj@Reg_interactions$RegInteractionsBin
 #------------------------------------------------------------------------------#
 #                       UMAP of Regulatory Relationships.                      #
 #------------------------------------------------------------------------------#
-regmat_umap <- uwot::umap(as.matrix(t(granetobj@Reg_interactions$RegInteractionsBin)),
-                          pca = 50, pca_center = F, n_neighbors = 15,
-                          n_components = 2, n_threads = 25)
+regmat_lsi <- Signac::RunTFIDF(granetobj@Reg_interactions$RegInteractionsBin)
+regmat_lsi <- Signac::RunSVD(regmat_lsi, n=100)
+head(Seurat::Embeddings(regmat_lsi)[, 1:5])
+dim(Seurat::Embeddings(regmat_lsi))
+
+regmat_umap <- uwot::umap(Seurat::Embeddings(regmat_lsi),
+                          n_neighbors = 15, n_components = 2, n_threads = 25)
 plot(regmat_umap[,1], regmat_umap[,2])
 
-annot <- granet_raw$annotation
+annot <- hs_scCATseq_embryo$annotation
 annot$UMAP1 <- regmat_umap[,1]
 annot$UMAP2 <- regmat_umap[,2]
 ggplot(annot, aes(x=UMAP1, y=UMAP2, color=celltype)) +
   geom_point() +
   cowplot::theme_cowplot()
 
-ls()
 
+
+granetobj10k <- granetobj
 ```
 
 
