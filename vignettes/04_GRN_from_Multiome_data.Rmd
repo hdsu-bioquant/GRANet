@@ -68,7 +68,7 @@ granetobj <- CreateGRANetMultiomeObject(SeuratObject  = hs_scCATseq_embryo$seura
                                         peak_counts   = hs_scCATseq_embryo$peak_counts,
                                         peaks_GRanges = hs_scCATseq_embryo$peaks_ranges,
                                         motifSet      = "cisbp",
-                                        genome        = 'hg19')
+                                        genome        = "hg19")
 
 ```
 
@@ -103,6 +103,10 @@ names(granetobj@Regulons)
 granetobj <- regulons_activity(GRANetObject=granetobj, aucMaxRank="1%", threads=50)
 class(granetobj@RegulonsAUCell)
 class(granetobj@RegulonsAUCell$AUCellBin)
+
+
+
+
 ```
 
 ## GRANet step 3: Find regulatory relationships
@@ -117,6 +121,14 @@ granetobj <- infer_reg_interactions(GRANetObject             = granetobj,
                                      test_p_val_threshold     = 0.05)
 
 granetobj@Reg_interactions$RegInteractionsBin
+granetobj@Reg_interactions$RegInteractionsTest
+
+x <- grep("FAM41C", rownames(granetobj@Reg_interactions$RegInteractionsBin), value = T)
+table(sapply(strsplit(x, "_"), function(x){
+  x[4]
+}))
+
+
 ```
 
 
@@ -150,92 +162,12 @@ granetobj10k <- granetobj
 
 ```{r}
 ##––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––##
-##                              Create Signac                                 ##
+##                                                               ##
 ##––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––##
-library(Signac)
-library(Seurat)
-
-# Create a ChromatinAssay 
-head(granetobj@Coexprs_modules)
-
-
-regmat_lsi <- RunTFIDF(granetobj@Reg_interactions$RegInteractionsBin)
-regmat_lsi <- RunSVD(regmat_lsi, n=100)
-head(Embeddings(regmat_lsi)[, 1:5])
-dim(Embeddings(regmat_lsi))
-
-regmat_umap <- uwot::umap(Embeddings(regmat_lsi),
-                          n_neighbors = 15, n_components = 2, n_threads = 25)
-plot(regmat_umap[,1], regmat_umap[,2])
-
-annot <- hs_scCATseq_embryo$annotation
-annot$UMAP1 <- regmat_umap[,1]
-annot$UMAP2 <- regmat_umap[,2]
-ggplot(annot, aes(x=UMAP1, y=UMAP2, color=celltype)) +
-  geom_point() +
-  cowplot::theme_cowplot()
+granetobj@Reg_interactions$RegInteractionsBin
 
 
 ```
-
-
-
-
-
-
-### Slot with regulons
-
-```{r}
-names(granetobj@cssRegulons)
-
-# Size of the Regulons found in brain
-granetobj@cssRegulons$AdultBrain %>% 
-  group_by(TF) %>% 
-  summarise(n = n()) 
-
-
-
-```
-
-
-
-## GRANet step 4: Compute cssRegulon activity
-
-```{r}
-granetobj <- cssRegulons_activity(GRANetObject = granetobj, 
-                                  aucMaxRank   = "50%", 
-                                  threads      = 1)
-
-
-saveRDS(granetobj, "GRANetProject/granetobj.RDS")
-
-```
-
-### Visualize cssRegulon activities
-
-```{r}
-
-Heatmap_AUCell(GRANetObject      = granetobj,
-               show_column_names = FALSE,
-               show_row_names    = FALSE,
-               show_column_dend  = TRUE,
-               show_row_dend     = TRUE,
-               cluster_rows      = TRUE)
-
-
-```
-
-### Slot with Regulon activities
-
-```{r}
-
-dim(granetobj@cssRegulonsAUCell)
-granetobj@cssRegulonsAUCell[1:5, 1:5]
-
-
-```
-
-
 
 
 
