@@ -39,8 +39,12 @@ GRANetMultiome <- setClass(
 #'
 #' @param SeuratObject Seurat object with scRNA-seq counts and a categorical
 #' cell identity annotation.
-#' @param cssCluster Name of the column in the Seurat object that contains the
-#' categorical cell identity annotation (e.g., cluster, cell type, cell state).
+#' @param RNA_assay Name of the Assay in the input SeuratObject containing the
+#' gene expression data.
+#' @param ATAC_assay Name of the Assay in the input SeuratObject containing the
+#' chromatin accessibility data.
+#' @param motifSet Name of the motif set database to use. Supported motif sets
+#' are: "jaspar2020", "jaspar2018", "jaspar2016", "cisbp", "encode", "homer".
 #' @param genome Genome of the organism under study, supported genomes are:
 #' "hg19", "hg38", "mm9", and "mm10".
 #'
@@ -55,8 +59,8 @@ GRANetMultiome <- setClass(
 #' }
 CreateGRANetMultiomeObject <- function(
   SeuratObject,
-  peak_counts,
-  peaks_GRanges,
+  RNA_assay  = "RNA",
+  ATAC_assay = "ATAC",
   motifSet,
   genome
 ){
@@ -65,14 +69,20 @@ CreateGRANetMultiomeObject <- function(
     stop("Non supported genome, please use one of the following:\n",
          "hg19, hg38, mm9, mm10")
   }
-  if (is.null(peaks_GRanges$PeakID)) {
-    stop("PeakID column missing in peaks_GRanges",
-         "This column should match exactly the row names on the peak_counts matrix")
+  if (!RNA_assay %in% Assays(granet_raw)) {
+    stop("RNA assay missing in input `SeuratObject`")
   }
-  if (!identical(peaks_GRanges$PeakID, rownames(peak_counts))) {
-    stop("PeakID column in peaks_GRanges does not match peaks_GRanges row names ",
-         "This column should match exactly the row names on the peak_counts matrix")
+  if (!ATAC_assay %in% Assays(granet_raw)) {
+    stop("ATAC assay missing in input `SeuratObject`")
   }
+  # if (is.null(peaks_GRanges$PeakID)) {
+  #   stop("PeakID column missing in peaks_GRanges",
+  #        "This column should match exactly the row names on the peak_counts matrix")
+  # }
+  # if (!identical(peaks_GRanges$PeakID, rownames(peak_counts))) {
+  #   stop("PeakID column in peaks_GRanges does not match peaks_GRanges row names ",
+  #        "This column should match exactly the row names on the peak_counts matrix")
+  # }
 
 
 
@@ -92,19 +102,21 @@ CreateGRANetMultiomeObject <- function(
           " motifs for which a corresponding TF was found in the scRNA-seq data")
 
   # transform peak matrix to binary sparse matrix
-  peak_counts <- as(peak_counts, "lgCMatrix")
+  #peak_counts <- as(peak_counts, "lgCMatrix")
 
 
   GRANetObject <- new(
     Class            = 'GRANetMultiome',
     SeuratObject     = SeuratObject,
     TFmotif_location = list(motifs        = motifs$motifs,
-                            motifSummary  = motifs$motifSummary,
+                            motifSummary  = motifs$motifSummary
                             # Add Granges and peaks counts to GRANet object
-                            peak_counts   = peak_counts,
-                            peaks_GRanges = peaks_GRanges
+                            #peak_counts   = peak_counts,
+                            #peaks_GRanges = peaks_GRanges
                             ),
-    ProjectMetadata  = list(Genome = genome)
+    ProjectMetadata  = list(Genome     = genome,
+                            RNA_assay  = RNA_assay,
+                            ATAC_assay = ATAC_assay)
   )
 
   return(GRANetObject)

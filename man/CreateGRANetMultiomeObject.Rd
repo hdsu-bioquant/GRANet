@@ -6,8 +6,8 @@
 \usage{
 CreateGRANetMultiomeObject(
   SeuratObject,
-  peak_counts,
-  peaks_GRanges,
+  RNA_assay = "RNA",
+  ATAC_assay = "ATAC",
   motifSet,
   genome
 )
@@ -16,11 +16,17 @@ CreateGRANetMultiomeObject(
 \item{SeuratObject}{Seurat object with scRNA-seq counts and a categorical
 cell identity annotation.}
 
+\item{RNA_assay}{Name of the Assay in the input SeuratObject containing the
+gene expression data.}
+
+\item{ATAC_assay}{Name of the Assay in the input SeuratObject containing the
+chromatin accessibility data.}
+
+\item{motifSet}{Name of the motif set database to use. Supported motif sets
+are: "jaspar2020", "jaspar2018", "jaspar2016", "cisbp", "encode", "homer".}
+
 \item{genome}{Genome of the organism under study, supported genomes are:
 "hg19", "hg38", "mm9", and "mm10".}
-
-\item{cssCluster}{Name of the column in the Seurat object that contains the
-categorical cell identity annotation (e.g., cluster, cell type, cell state).}
 }
 \value{
 

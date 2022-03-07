@@ -77,7 +77,7 @@ granetobj <- CreateGRANetMultiomeObject(SeuratObject  = hs_scCATseq_embryo$seura
 
 ```{r}
 #------------------------------------------------------------------------------#
-#                       Active Transcription Factors                           #
+#                             Co-expression modules                            #
 #------------------------------------------------------------------------------#
 # Compute co-expression modules
 granetobj <- coexpression_modules_grnboost2(GRANetObject = granetobj,
