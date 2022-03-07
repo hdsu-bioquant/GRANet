@@ -29,8 +29,17 @@ infer_reg_interactions <- function(
   message("Making binary matrix of regulatory interactions")
   # Make bin matrix of motif-target x cell
   # PeakID column from motifs granges to subset binary peak counts matrix
-  motif_target_bin <- GRANetObject@TFmotif_location$peak_counts[
-    GRANetObject@TFmotif_location$annotated_motifs$PeakID,]
+
+  #peak_counts
+  motif_target_bin <- Seurat::GetAssayData(
+    object = GRANetObject@SeuratObject,
+    assay  = GRANetObject@ProjectMetadata$ATAC_assay,
+    slot   = "counts")
+  motif_target_bin <- as(
+    motif_target_bin,
+    "lgCMatrix")[GRANetObject@TFmotif_location$annotated_motifs$PeakID,]
+
+
 
   # Make bin matrix of motif-TF x cell
   # TF column from motifs granges to subset binary TF activity matrix
@@ -38,6 +47,7 @@ infer_reg_interactions <- function(
     GRANetObject@TFmotif_location$annotated_motifs$RegulonID,]
 
   reg_inter_bin <- motif_target_bin * motif_TF_bin
+
   regID <- GRANetObject@TFmotif_location$annotated_motifs %>%
     as_tibble() %>%
     dplyr::mutate(RegInteractionID = paste0(
@@ -49,9 +59,9 @@ infer_reg_interactions <- function(
   rownames(reg_inter_bin) <- regID$RegInteractionID
 
 
-  #--------------------------------------#
-  # Filtering non-consitent interactions #
-  #--------------------------------------#
+  #---------------------------------------#
+  # Filtering non-consistent interactions #
+  #---------------------------------------#
   message("Filtering non-consitent interactions")
   idx <- (Matrix::rowSums(reg_inter_bin)/ncol(reg_inter_bin)) >= min_cell_per_interaction
   reg_inter_bin <- reg_inter_bin[idx,]
@@ -70,7 +80,23 @@ infer_reg_interactions <- function(
                GRANetObject@TFmotif_location$annotated_motifs$RegInteractionID)
   reg_rel_ranges <- GRANetObject@TFmotif_location$annotated_motifs[idx]
   # 2. Build matrices of gene expression
-  exprs_mat <- Seurat::GetAssayData(object = GRANetObject@SeuratObject)
+  DefaultAssay(GRANetObject@SeuratObject) <- GRANetObject@ProjectMetadata$RNA_assay
+  n <- nrow(
+    Seurat::GetAssayData(
+    object = GRANetObject@SeuratObject,
+    assay  = GRANetObject@ProjectMetadata$RNA_assay,
+    slot   = "data"))
+  if (n == 0) {
+    GRANetObject@SeuratObject <- NormalizeData(
+      GRANetObject@SeuratObject,
+      normalization.method = "LogNormalize",
+      scale.factor = 10000)
+  }
+  exprs_mat <- Seurat::GetAssayData(
+    object = GRANetObject@SeuratObject,
+    assay  = GRANetObject@ProjectMetadata$RNA_assay,
+    slot   = "data")
+
   exprs_mat <- exprs_mat[reg_rel_ranges$target,]
   rownames(exprs_mat) <- rownames(reg_inter_bin)
   exprs_mat <- as.matrix(exprs_mat)
