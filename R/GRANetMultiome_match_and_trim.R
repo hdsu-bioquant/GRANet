@@ -76,9 +76,10 @@ find_motif_positions <- function(
     BSgenome <- BSgenome.Mmusculus.UCSC.mm10
   }
 
+  DefaultAssay(GRANetObject@SeuratObject) <- GRANetObject@ProjectMetadata$ATAC_assay
   motifPositions <- motifmatchr::matchMotifs(
     pwms    = GRANetObject@TFmotif_location$motifs,
-    subject = GRANetObject@TFmotif_location$peaks_GRanges,
+    subject = Signac::granges(GRANetObject@SeuratObject),
     genome  = BSgenome,
     out     = "positions",
     #out     = "matches",
@@ -125,6 +126,7 @@ annotate_motif_positions <- function(
   # Get gene promoters
   message("Add TF ID...")
   # keep only genes included in the co-expression modules
+  DefaultAssay(GRANetObject@SeuratObject) <- GRANetObject@ProjectMetadata$RNA_assay
   genesGr <- genesGr[genesGr$symbol %in% rownames(GRANetObject@SeuratObject)]
   tssGr <- resize(genesGr, width = 1, fix = "start")
   promoters <- trim(suppressWarnings(tssGr+promoter_size))
@@ -143,12 +145,13 @@ annotate_motif_positions <- function(
   names(gr_promoters) <- NULL
 
   # Overlap with peaks to find peak id
-  #peakIDs <- paste0("P", 1:length(GRANetObject@TFmotif_location$peaks_GRanges))
-  #GRANetObject@TFmotif_location$peaks_GRanges$PeakID <- peakIDs
+  DefaultAssay(GRANetObject@SeuratObject) <- GRANetObject@ProjectMetadata$ATAC_assay
   grhits <- findOverlaps(query   = gr_promoters,
-                         subject = GRANetObject@TFmotif_location$peaks_GRanges)
+                         subject = Signac::granges(GRANetObject@SeuratObject))
   gr_prom_peaks <- gr_promoters[queryHits(grhits)]
-  gr_prom_peaks$PeakID <- GRANetObject@TFmotif_location$peaks_GRanges$PeakID[subjectHits(grhits)]
+  gr_prom_peaks$PeakID <- rownames(GRANetObject@SeuratObject)[subjectHits(grhits)]
+  #GRANetObject@TFmotif_location$peaks_GRanges
+  #GRANetObject@TFmotif_location$peaks_GRanges$PeakID[subjectHits(grhits)]
 
 
   # Add regulon ID

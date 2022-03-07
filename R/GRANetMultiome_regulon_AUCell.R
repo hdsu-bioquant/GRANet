@@ -20,7 +20,10 @@ regulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
   # Make rankings from gene expression #
   #------------------------------------#
   aucellRankings <- AUCell::AUCell_buildRankings(
-    exprMat   = Seurat::GetAssayData(object = GRANetObject@SeuratObject, slot = "counts"),
+    exprMat   = Seurat::GetAssayData(
+      object = GRANetObject@SeuratObject,
+      assay  = GRANetObject@ProjectMetadata$RNA_assay,
+      slot   = "counts"),
     nCores    = threads,
     plotStats = FALSE,
     verbose   = TRUE)

@@ -89,11 +89,14 @@ compute_coexpression_modules <- function(GRANetObject, TFs, threads=1){
   #   Compute coexpression modules     #
   #------------------------------------#
   message("Computing Co-expression modules...")
+  DefaultAssay(GRANetObject@SeuratObject) <- GRANetObject@ProjectMetadata$RNA_assay
   cmods <- coexpression_modules(
     method       = "grnboost2",
-    ex_matrix_r  = reticulate::r_to_py(Seurat::GetAssayData(
-      object = GRANetObject@SeuratObject,
-      slot = "counts")),
+    ex_matrix_r  = reticulate::r_to_py(
+      Seurat::GetAssayData(
+        object = GRANetObject@SeuratObject,
+        assay  = GRANetObject@ProjectMetadata$RNA_assay,
+        slot   = "counts")),
     gene_names_r = rownames(GRANetObject@SeuratObject),
     tf_names     = TFs,
     num_workers  = as.integer(threads),
@@ -147,10 +150,13 @@ add_correlation_to_coexpression_modules <- function(GRANetObject, mask_dropouts=
   #   Compute coexpression modules     #
   #------------------------------------#
   message("Adding correlation to co-expression modules...")
+  DefaultAssay(GRANetObject@SeuratObject) <- GRANetObject@ProjectMetadata$RNA_assay
   cmods <- correlations_to_modules(
-    ex_matrix = reticulate::r_to_py(Seurat::GetAssayData(
-      object = GRANetObject@SeuratObject,
-      slot = "counts")),
+    ex_matrix = reticulate::r_to_py(
+      Seurat::GetAssayData(
+        object = GRANetObject@SeuratObject,
+        assay  = GRANetObject@ProjectMetadata$RNA_assay,
+        slot   = "counts")),
     gene_names = rownames(GRANetObject@SeuratObject),
     cell_names = colnames(GRANetObject@SeuratObject),
     adj                  = GRANetObject@Coexprs_modules,
