@@ -15,7 +15,7 @@
 #' }
 regulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
 
-  message("Building rankind and computing TF acivty...")
+  message("Building rankind and computing TF activity")
   #------------------------------------#
   # Make rankings from gene expression #
   #------------------------------------#

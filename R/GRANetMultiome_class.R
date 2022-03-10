@@ -69,10 +69,10 @@ CreateGRANetMultiomeObject <- function(
     stop("Non supported genome, please use one of the following:\n",
          "hg19, hg38, mm9, mm10")
   }
-  if (!RNA_assay %in% Assays(granet_raw)) {
+  if (!RNA_assay %in% Assays(SeuratObject)) {
     stop("RNA assay missing in input `SeuratObject`")
   }
-  if (!ATAC_assay %in% Assays(granet_raw)) {
+  if (!ATAC_assay %in% Assays(SeuratObject)) {
     stop("ATAC assay missing in input `SeuratObject`")
   }
   # if (is.null(peaks_GRanges$PeakID)) {
