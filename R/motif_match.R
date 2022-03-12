@@ -118,6 +118,7 @@ check_BSGenome <- function(
   GRANetObject
 ){
   genome <- GRANetObject@ProjectMetadata$Genome
+  install <- TRUE
 
   #Check if BSgenome exists!
   if(tolower(genome)=="hg19"){

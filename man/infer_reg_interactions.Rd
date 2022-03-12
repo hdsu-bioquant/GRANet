@@ -7,7 +7,9 @@
 infer_reg_interactions(
   GRANetObject,
   min_cell_per_interaction = 0.01,
-  test_p_val_threshold = 0.05
+  test_p_val_threshold = 0.05,
+  test_by_bins = TRUE,
+  binsize = 1000
 )
 }
 \arguments{
