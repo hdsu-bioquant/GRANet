@@ -18,6 +18,8 @@ editor_options:
   
 ```{r load_style, warning=FALSE, message=FALSE, results="hide"}
 library(GRANet)
+library(Seurat)
+library(Signac)
 library(tidyverse)
 library(matrixTests)
 
@@ -44,9 +46,8 @@ Nat Commun 10, 470 (2019). https://doi.org/10.1038/s41467-018-08205-7
 ```{r}
 # Load gene expression and chromatin accessibility data for human embryo cells:
 data(hs_scCATseq_embryo)
-names(hs_scCATseq_embryo)
-head(hs_scCATseq_embryo$annotation)
-
+hs_scCATseq_embryo
+head(hs_scCATseq_embryo@meta.data)
 ```
 
 ## Activate conda environment 
@@ -64,11 +65,11 @@ reticulate::use_condaenv("granet")
 #                           Create GRANet object                               #
 #------------------------------------------------------------------------------#
 ## Create GRANet object
-granetobj <- CreateGRANetMultiomeObject(SeuratObject  = hs_scCATseq_embryo$seuratobj,
-                                        peak_counts   = hs_scCATseq_embryo$peak_counts,
-                                        peaks_GRanges = hs_scCATseq_embryo$peaks_ranges,
+granetobj <- CreateGRANetMultiomeObject(SeuratObject  = hs_scCATseq_embryo,
+                                        RNA_assay     = "RNA",
+                                        ATAC_assay    = "ATAC",
                                         motifSet      = "cisbp",
-                                        genome        = "hg19")
+                                        genome        = 'hg19')
 
 ```
 
@@ -100,7 +101,10 @@ granetobj@TFmotif_location$annotated_motifs
 names(granetobj@Regulons)
 
 # Find active TFs per cell
-granetobj <- regulons_activity(GRANetObject=granetobj, aucMaxRank="1%", threads=50)
+granetobj <- regulons_activity(GRANetObject     = granetobj, 
+                               aucMaxRank       = "1%", 
+                               threads          = 10,
+                               fastBinarization = FALSE)
 class(granetobj@RegulonsAUCell)
 class(granetobj@RegulonsAUCell$AUCellBin)
 
@@ -117,17 +121,12 @@ class(granetobj@RegulonsAUCell$AUCellBin)
 #                       Infer Regulatory Relationships.                        #
 #------------------------------------------------------------------------------#
 granetobj <- infer_reg_interactions(GRANetObject             = granetobj,
-                                     min_cell_per_interaction = 0.01,
-                                     test_p_val_threshold     = 0.05)
+                                    min_cell_per_interaction = 0.01,
+                                    test_p_val_threshold     = 0.05,
+                                    binsize                  = 200000)
 
-granetobj@Reg_interactions$RegInteractionsBin
-granetobj@Reg_interactions$RegInteractionsTest
-
-x <- grep("FAM41C", rownames(granetobj@Reg_interactions$RegInteractionsBin), value = T)
-table(sapply(strsplit(x, "_"), function(x){
-  x[4]
-}))
-
+granetobj@Reg_interactions$RegInteractionsBin[1:5,1:5]
+head(granetobj@Reg_interactions$RegInteractionsTest)
 
 ```
 
@@ -146,7 +145,7 @@ regmat_umap <- uwot::umap(Seurat::Embeddings(regmat_lsi),
                           n_neighbors = 15, n_components = 2, n_threads = 25)
 plot(regmat_umap[,1], regmat_umap[,2])
 
-annot <- hs_scCATseq_embryo$annotation
+annot <- granetobj@SeuratObject@meta.data
 annot$UMAP1 <- regmat_umap[,1]
 annot$UMAP2 <- regmat_umap[,2]
 ggplot(annot, aes(x=UMAP1, y=UMAP2, color=celltype)) +
@@ -154,20 +153,6 @@ ggplot(annot, aes(x=UMAP1, y=UMAP2, color=celltype)) +
   cowplot::theme_cowplot()
 
 
-
-granetobj10k <- granetobj
 ```
-
-
-
-```{r}
-##––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––##
-##                                                               ##
-##––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––##
-granetobj@Reg_interactions$RegInteractionsBin
-
-
-```
-
 
 

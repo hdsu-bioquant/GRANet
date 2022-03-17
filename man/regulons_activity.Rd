@@ -4,7 +4,12 @@
 \alias{regulons_activity}
 \title{Quantification of regulon activity and binarization}
 \usage{
-regulons_activity(GRANetObject, aucMaxRank = "1\%", threads = 1)
+regulons_activity(
+  GRANetObject,
+  aucMaxRank = "1\%",
+  threads = 1,
+  fastBinarization = FALSE
+)
 }
 \arguments{
 \item{GRANetObject}{GRANet object with computed regulons.}
@@ -12,6 +17,10 @@ regulons_activity(GRANetObject, aucMaxRank = "1\%", threads = 1)
 \item{aucMaxRank}{possible values: "min", "1\%", "5\%", "10\%", "50\%", "100\%".}
 
 \item{threads}{Number of threads to use.}
+
+\item{fastBinarization}{Regulon activity binarization can be run in a
+multithreaded implementation. However, for large dataset the single threaded
+implementation is more stable.}
 }
 \value{
 

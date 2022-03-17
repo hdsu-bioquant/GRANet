@@ -4,6 +4,9 @@
 #' @param GRANetObject GRANet object with computed regulons.
 #' @param aucMaxRank possible values: "min", "1\%", "5\%", "10\%", "50\%", "100\%".
 #' @param threads Number of threads to use.
+#' @param fastBinarization Regulon activity binarization can be run in a
+#' multithreaded implementation. However, for large dataset the single threaded
+#' implementation is more stable.
 #'
 #' @return
 #' @export
@@ -13,7 +16,12 @@
 #' granetobj <- regulons_activity(GRANetObject=granetobj,
 #' aucMaxRank="50%", threads=1)
 #' }
-regulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
+regulons_activity <- function(
+  GRANetObject,
+  aucMaxRank       = "1%",
+  threads          = 1,
+  fastBinarization = FALSE
+  ){
 
   message("Building rankind and computing TF activity")
   #------------------------------------#
@@ -51,18 +59,50 @@ regulons_activity <- function(GRANetObject, aucMaxRank="1%", threads=1){
   #-----------------------------------------------#
   message("Binarizing TF activity...")
   pyscenic <- reticulate::import("pyscenic")
-  scenic_binarized <- pyscenic$binarization$binarize(
-    auc_mtx     = regulonAUC,
-    num_workers = as.integer(threads))
+
+  if (fastBinarization) {
+    scenic_binarized <- binarize_AUCellScores_fast(regulonAUC)
+  } else {
+    scenic_binarized <- binarize_AUCellScores_slow(regulonAUC)
+  }
 
   # Add cssRegulons AUCell to slot
   GRANetObject@RegulonsAUCell <- list(
     AUCellScores = regulonAUC,
-    AUCellBin    = as(t(scenic_binarized[[1]]), "lgCMatrix"),
-    AUCellThrs   = scenic_binarized[[2]]
+    AUCellBin    = scenic_binarized$AUCellBin,
+    AUCellThrs   = scenic_binarized$AUCellThrs
   )
 
 
   return(GRANetObject)
 
 }
+
+binarize_AUCellScores_fast <- function(AUCellScores){
+  pyscenic <- reticulate::import("pyscenic")
+
+  pyscenic <- reticulate::import("pyscenic")
+  scenic_binarized <- pyscenic$binarization$binarize(
+    auc_mtx     = AUCellScores,
+    num_workers = as.integer(threads))
+
+  return(list(AUCellBin  = as(t(scenic_binarized[[1]]), "lgCMatrix"),
+              AUCellThrs = scenic_binarized[[2]]))
+}
+
+
+binarize_AUCellScores_slow <- function(AUCellScores){
+  pyscenic <- reticulate::import("pyscenic")
+
+  thresholds <- pbapply::pblapply(colnames(AUCellScores), function(regulonID){
+    pyscenic$binarization$derive_threshold(auc_mtx      = AUCellScores,
+                                           regulon_name = regulonID )
+  })
+  thresholds <- unlist(thresholds)
+  AUCellBin <- (t(AUCellScores) > thresholds) * 1
+  AUCellBin <- as(AUCellBin, "lgCMatrix")
+
+  return(list(AUCellBin  = AUCellBin,
+              AUCellThrs = thresholds))
+}
+
